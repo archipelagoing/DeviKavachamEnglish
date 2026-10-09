@@ -1,29 +1,44 @@
 :root { color-scheme: light; --reading-size: 1.15rem; }
 * { box-sizing: border-box; }
-body { width: auto; max-width: 58rem; margin: 0 auto; padding: 2.5rem 1.5rem; background: #fffff8; color: #211e18; }
+body { width: 100%; max-width: none; margin: 0; padding: .65rem 1rem; background: #fffff8; color: #211e18; }
 body, button, select { font-family: Georgia, 'Times New Roman', serif; }
-.book-header { border-bottom: 1px solid #d8d2c5; padding-bottom: 1.5rem; }
-h1 { margin: 0; font-weight: normal; font-size: clamp(2.2rem, 6vw, 3.5rem); }
-.subtitle { font-size: 1.25rem; font-style: italic; margin: .7rem 0 1.4rem; }
-nav, .page-controls, .text-controls, .epub-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
-nav a { font-size: 1rem; }
+.book-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1.5rem; border-bottom: 1px solid #d8d2c5; padding-bottom: .6rem; }
+h1 { margin: 0; font-weight: normal; font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.25; }
+nav, .page-controls, .text-controls, .epub-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; }
+nav a { font-size: .95rem; }
 a { color: #593322; text-decoration: underline; text-underline-offset: .18em; }
-button, select { min-height: 44px; padding: .5rem .75rem; border: 1px solid #938876; border-radius: 2px; background: transparent; color: inherit; font-size: 1rem; }
+button, select { min-height: 44px; padding: .4rem .65rem; border: 1px solid #938876; border-radius: 2px; background: transparent; color: inherit; font-size: .95rem; }
 button { cursor: pointer; }
 button:disabled { opacity: .5; cursor: default; }
 button:hover:not(:disabled) { background: #eeeade; }
-:focus-visible { outline: 3px solid #744422; outline-offset: 4px; }
-.skip-link { position: absolute; top: -8rem; padding: .7rem; background: #fffff8; }
+:focus-visible { outline: 3px solid #744422; outline-offset: 3px; }
+.skip-link { position: absolute; top: -8rem; padding: .7rem; background: #fffff8; z-index: 2; }
 .skip-link:focus { top: .5rem; }
-.reader-controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-top: 1.5rem; }
+.reader-controls { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; padding: .6rem 0; }
 [hidden] { display: none !important; }
-.reader-status { font-size: 1rem; color: #5b5144; margin: 1.3rem 0 0; width: auto; }
-.reading-page { padding: 1.25rem 0 2rem; max-width: 43rem; }
-.reading-page h2 { font-size: 1.35rem; font-style: normal; font-weight: normal; margin: 0 0 1.7rem; }
-pre.source-text { font-family: Georgia, 'Times New Roman', serif; font-size: var(--reading-size); line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 8; width: 100%; padding: 0; margin: 0; background: transparent; }
-.source-text span { scroll-margin-top: 1rem; }
-footer { border-top: 1px solid #d8d2c5; padding-top: 1rem; margin-top: 1.5rem; }
-footer p, #epub-reader p { width: auto; font-size: .95rem; line-height: 1.6; max-width: 43rem; }
-#epub-area { height: 75vh; min-height: 25rem; margin-top: 1rem; background: #fffff8; }
-@media (max-width: 600px) { body { padding: 1.5rem 1rem; } select { max-width: 100%; } .page-controls { gap: .5rem; } }
-@media print { nav, .reader-controls, .reader-status, .skip-link, #epub-reader { display: none !important; } .reading-page[hidden] { display: block !important; } body { max-width: none; padding: 0; } .reading-page { break-before: page; max-width: none; } .book-header { border: 0; } }
+#html-reader { max-width: 43rem; margin: 0 auto; }
+.reading-page { padding: 1.5rem 0; border-bottom: 1px solid #d8d2c5; scroll-margin-top: 1rem; }
+.reading-page h2 { font-size: 1.2rem; font-style: normal; font-weight: normal; margin: 0 0 1.2rem; color: #5b5144; }
+pre.source-text { font-family: Georgia, 'Times New Roman', serif; font-size: var(--reading-size); line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 8; width: 100%; padding: 0; margin: 0; background: transparent; }
+.verse { display: block; scroll-margin-top: 1rem; }
+.verse + .verse { border-top: 1px solid #d8d2c5; padding-top: .7em; }
+.verse-label { font-weight: bold; font-variant: small-caps; color: #593322; }
+footer { border-top: 1px solid #d8d2c5; padding-top: .5rem; margin-top: 1.5rem; }
+footer p { width: auto; font-size: .9rem; line-height: 1.5; margin: .5rem 0; }
+#epub-reader .reader-help { width: auto; max-width: none; font-size: .9rem; line-height: 1.4; margin: .1rem 0 .7rem; color: #5b5144; }
+#epub-status { width: auto; font-size: .95rem; }
+#epub-status:empty { display: none; }
+#epub-area { height: calc(100svh - 10rem); min-height: 18rem; background: #fffff8; }
+#epub-area.facing-pages { position: relative; border: 1px solid #d8d2c5; }
+#epub-area.facing-pages::after { content: ''; position: absolute; inset: 0 auto 0 50%; width: 1px; background: #d8d2c5; pointer-events: none; }
+.epub-controls { justify-content: center; margin-top: .75rem; }
+.book-spread { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; padding: .75rem 1rem; }
+.book-spread.opening-spread { grid-template-columns: minmax(0, 1fr); }
+.book-leaf { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.opening-spread .book-leaf { width: min(100%, 60rem); margin: 0 auto; }
+.book-leaf h2 { flex: none; width: auto; margin: 0 0 .5rem; font-size: .95rem; font-style: normal; font-weight: normal; color: #5b5144; }
+.book-leaf-body { flex: 1; min-height: 0; }
+.book-leaf-body .epub-container { overflow-x: hidden !important; }
+body:has(.book-spread) #epub-reader .epub-controls { margin-top: .4rem; }
+@media (max-width: 899px) { body { padding: .8rem 1rem; } #epub-area { height: auto; min-height: 0; } select { max-width: 100%; } }
+@media print { nav, .reader-controls, .skip-link, #epub-reader { display: none !important; } #html-reader[hidden] { display: block !important; } body { max-width: none; padding: 0; } .reading-page { break-before: page; max-width: none; border: 0; } .book-header { border: 0; } }

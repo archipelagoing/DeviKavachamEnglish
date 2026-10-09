@@ -1,0 +1,33 @@
+/* Reader View adaptation: typography and palettes inspired by tabreturn's theme.
+   Original local implementation; no Jekyll, remote fonts, or extra libraries. */
+:root { --paper: #f4ecd8; --ink: #5b4636; --muted: #695443; --rule: #bbad93; --hover: #e8ddc5; --focus: #5b4636; --measure: 35rem; --reading-line-height: 1.6; --reading-font: Georgia, 'Times New Roman', serif; }
+:root[data-appearance="light"] { --paper: #fff; --ink: #333; --muted: #555; --rule: #b4b4b4; --hover: #f0f0f0; --focus: #333; color-scheme: light; }
+:root[data-appearance="dark"] { --paper: #333; --ink: #eee; --muted: #ccc; --rule: #888; --hover: #454545; --focus: #eee; color-scheme: dark; }
+:root[data-font="sans"] { --reading-font: Helvetica, Arial, sans-serif; }
+html { background: var(--paper); }
+body { max-width: none; background: var(--paper); color: var(--ink); font-family: var(--reading-font); }
+body, pre.source-text { font-family: var(--reading-font); }
+button, select, summary, .reader-controls label { font-family: Helvetica, Arial, sans-serif; }
+pre.source-text { line-height: var(--reading-line-height); }
+#html-reader { max-width: var(--measure); }
+h1 { font-size: clamp(1.5rem, 3vw, 1.9rem); }
+.book-header, footer, .reading-page, .verse + .verse, #epub-area.facing-pages { border-color: var(--rule); }
+a, .verse-label { color: var(--ink); }
+.reading-page h2, .book-leaf h2, #epub-reader .reader-help, footer { color: var(--muted); }
+button, select { color: var(--ink); border-color: var(--rule); background: var(--paper); }
+button:hover:not(:disabled), summary:hover { background: var(--hover); }
+:focus-visible { outline-color: var(--focus); }
+.skip-link { background: var(--paper); }
+#epub-area { background: var(--paper); }
+#epub-area.facing-pages::after { background: var(--rule); }
+.appearance-settings { position: relative; }
+.appearance-settings summary { min-height: 44px; padding: .65rem; border: 1px solid var(--rule); border-radius: 2px; font-size: .95rem; cursor: pointer; }
+.appearance-panel { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 5; width: min(20rem, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--rule); background: var(--paper); box-shadow: 0 2px 8px #0002; font-family: Helvetica, Arial, sans-serif; }
+.appearance-panel fieldset { margin: 0 0 1rem; padding: 0; border: 0; }
+.appearance-panel legend { font-size: .85rem; font-weight: bold; margin-bottom: .3rem; }
+.appearance-panel fieldset label { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; margin-right: .5rem; font-size: .95rem; }
+.appearance-panel input { accent-color: var(--ink); width: 1rem; height: 1rem; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .95rem; margin: 0 0 .75rem; }
+.theme-credit { font-size: .85rem; }
+@media (max-width: 600px) { .reader-controls { align-items: center; } .text-controls { margin-left: auto; } .appearance-panel { right: -5.8rem; } }
+@media print { html, body { background: white; color: #211e18; } .appearance-settings { display: none; } pre.source-text { color: #211e18; } }

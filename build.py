@@ -45,7 +45,17 @@ def build():
 <article id="html-reader">SECTIONS</article>
 <section id="epub-reader" hidden aria-label="EPUB reader"><p id="epub-help" class="reader-help"></p><div id="epub-area" tabindex="0" role="region" aria-label="Book pages" aria-describedby="epub-help"></div><p id="epub-status" role="status" aria-live="polite"></p><div class="epub-controls"><button type="button" id="epub-previous">Previous spread</button><button type="button" id="epub-next">Next spread</button></div></section></main>
 <footer><p>56 verses · Eight reading pages</p><p>This edition preserves the supplied text.</p><p>Source reference: <a href="https://stotranidhi.com/en/durga-saptasati-devi-kavacham-in-english/">Stotra Nidhi — Devi Kavacham</a>.</p></footer></body></html>'''.replace('OPTIONS',options).replace('SECTIONS','\n'.join(sections))
+    comparison = '<a href="reader-view.html" id="theme-comparison">Reader View version</a>'
+    doc = doc.replace('<nav aria-label="Reading formats">', '<nav aria-label="Reading formats">'+comparison)
     (ROOT/'index.html').write_text(doc,encoding='utf-8')
+    settings = '''<details id="appearance-settings" class="appearance-settings" hidden><summary>Appearance</summary><div class="appearance-panel"><fieldset><legend>Typeface</legend><label><input type="radio" name="typeface" value="serif" checked> Serif</label><label><input type="radio" name="typeface" value="sans"> Sans-serif</label></fieldset><fieldset><legend>Page color</legend><label><input type="radio" name="appearance" value="light"> Light</label><label><input type="radio" name="appearance" value="dark"> Dark</label><label><input type="radio" name="appearance" value="sepia" checked> Sepia</label></fieldset><label class="setting-row" for="reading-width">Reading width <select id="reading-width"><option value="narrow">Narrow</option><option value="normal" selected>Normal</option><option value="wide">Wide</option></select></label><label class="setting-row" for="line-spacing">Line spacing <select id="line-spacing"><option value="1.4">Compact</option><option value="1.6" selected>Normal</option><option value="1.8">Spacious</option></select></label><button type="button" id="reset-appearance">Reset appearance</button></div></details>'''
+    reader_view = doc.replace('<html lang="en">','<html lang="en" data-edition="reader-view" data-appearance="sepia" data-font="serif">')
+    reader_view = reader_view.replace('<link rel="stylesheet" href="assets/vendor/tufte.css">','')
+    reader_view = reader_view.replace('<script src="assets/reader.js" defer>', '<link rel="stylesheet" href="assets/reader-view.css"><script src="assets/reader.js" defer>')
+    reader_view = reader_view.replace(comparison,'<a href="index.html" id="theme-comparison">Tufte version</a>')
+    reader_view = reader_view.replace('<div class="text-controls">','<div class="text-controls">'+settings)
+    reader_view = reader_view.replace('<footer>', '<footer><p class="theme-credit">Reader View appearance adapted from <a href="https://github.com/tabreturn/tabreturn.jekyll.theme">tabreturn’s Reader-View theme</a>.</p>')
+    (ROOT/'reader-view.html').write_text(reader_view,encoding='utf-8')
     css = 'body{font-family:Georgia,"Times New Roman",serif;color:#211e18;background:#fffff8;margin:0;padding:1rem;line-height:1.65}.source-text{font:inherit;white-space:pre-wrap;tab-size:8;overflow-wrap:anywhere;margin:0}.verse{display:block}.verse+.verse{border-top:1px solid #d8d2c5;padding-top:.7em}.verse-label{font-weight:bold;font-variant:small-caps;color:#593322}'
     xhtmls = []
     for i,chunk in enumerate(chunks):
@@ -73,8 +83,9 @@ def verify(raw=None,chunks=None):
             if tag=='pre': self.inside=False
         def handle_data(self,data):
             if self.inside: self.parts.append(data)
-    reader=Reader();reader.feed((ROOT/'index.html').read_text(encoding='utf-8'))
-    assert ''.join(reader.parts).encode('utf-8')==raw, 'HTML source text changed'
+    for name in ('index.html','reader-view.html'):
+        reader=Reader();reader.feed((ROOT/name).read_text(encoding='utf-8'))
+        assert ''.join(reader.parts).encode('utf-8')==raw, f'HTML source text changed in {name}'
     ns={'h':'http://www.w3.org/1999/xhtml'}
     with zipfile.ZipFile(ROOT/'Devi-Kavacham.epub') as z:
         assert z.infolist()[0].filename=='mimetype'
@@ -86,7 +97,7 @@ def verify(raw=None,chunks=None):
             if i: assert len(re.findall(r'^Verse \d+\r?$',chunk,re.M))==7
         assert ''.join(extracted).encode('utf-8')==raw,'EPUB source text changed'
         ET.fromstring(z.read('EPUB/package.opf'));ET.fromstring(z.read('EPUB/nav.xhtml'));ET.fromstring(z.read('META-INF/container.xml'))
-    print('Verified: HTML and EPUB preserve the complete source text; each reading page has seven verses.')
+    print('Verified: both HTML themes and EPUB preserve the complete source text; each reading page has seven verses.')
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true');args=parser.parse_args()
