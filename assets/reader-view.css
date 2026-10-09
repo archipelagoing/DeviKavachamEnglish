@@ -37,3 +37,9 @@ body.book-mode { background: var(--hover); }
 
 :root[data-appearance="dark"] .verse::before { color: #df938b; }
 .book-header h1 { font-size: clamp(1.3rem, 2.2vw, 1.65rem); }
+
+:root { --header-tint: #ddd0b4; --header-base: #e8ddc5; }
+:root[data-appearance="light"] { --header-tint: #e3ddd2; --header-base: #f0f0f0; }
+:root[data-appearance="dark"] { --header-tint: #51483e; --header-base: #454545; --verse-ink: #eee; --alternate-ink: #d4b99c; --toggle-paper: #655440; --toggle-ink: #fff0d8; --toggle-border: #a08b70; }
+
+@media (min-width: 900px) { .book-header h1 { font-size: 1.35rem; } }

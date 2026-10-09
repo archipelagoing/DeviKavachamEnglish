@@ -9,6 +9,11 @@
   const message = document.getElementById('epub-status');
   const previous = document.getElementById('epub-previous');
   const next = document.getElementById('epub-next');
+  const turnButtons = [...document.querySelectorAll('[data-turn]')];
+  const mobileHeader = matchMedia('(max-width: 899px)');
+  const menu = document.querySelector('.book-menu');
+  const expandHeader = () => { menu.open = !mobileHeader.matches; };
+  expandHeader(); mobileHeader.addEventListener('change', expandHeader);
   const readerView = document.documentElement.dataset.edition === 'reader-view';
   const defaults = { appearance: 'sepia', font: 'serif', width: 'normal', lineHeight: '1.6', size: 1.15 };
   const palettes = { light: { paper: '#ffffff', ink: '#333333', rule: '#b4b4b4' }, dark: { paper: '#333333', ink: '#eeeeee', rule: '#888888' }, sepia: { paper: '#f4ecd8', ink: '#5b4636', rule: '#bbad93' } };
@@ -59,6 +64,8 @@
       reader.themes.default({
         body: { 'background-color': `${palette.paper} !important`, color: `${palette.ink} !important`, 'font-family': `${families[preferences.font]} !important`, 'line-height': `${preferences.lineHeight} !important` },
         '.source-text': { 'font-family': 'inherit !important', 'line-height': `${preferences.lineHeight} !important` },
+        '.verse': { color: `${preferences.appearance === 'dark' ? '#eeeeee' : '#211e18'} !important` },
+        '.verse[data-tone="even"]': { color: `${preferences.appearance === 'dark' ? '#d4b99c' : '#694633'} !important` },
         '.verse::before': { color: `${preferences.appearance === 'dark' ? '#df938b' : '#a04d45'} !important` }
       });
       reader.themes.fontSize(`${size}rem`);
@@ -147,9 +154,20 @@
     if (!rendition || turning) return;
     if ((direction < 0 && position?.atStart) || (direction > 0 && position?.atEnd)) return;
     turning = true;
-    try { const destination = direction > 0 ? spreadStart === 0 ? 1 : spreadStart + (singlePage ? 1 : 2) : spreadStart === 1 ? 0 : spreadStart - (singlePage ? 1 : 2); await renderFacing(`page-${destination}.xhtml`); }
+    try { const destination = direction > 0 ? spreadStart === 0 ? 1 : spreadStart + (singlePage ? 1 : 2) : spreadStart === 1 ? 0 : spreadStart - (singlePage ? 1 : 2); await renderFacing(`page-${destination}.xhtml`); animateTurn(direction); }
     catch (error) { message.textContent = 'Unable to turn this page. Use Continuous text to keep reading.'; }
     finally { turning = false; }
+  }
+  function animateTurn(direction) {
+    if (mode !== 'epub' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const leaves = [...area.querySelectorAll('.book-leaf')];
+    const leaf = direction > 0 ? leaves.at(-1) : leaves[0];
+    if (!leaf?.animate) return;
+    leaf.style.transformOrigin = direction > 0 ? 'left center' : 'right center';
+    leaf.animate([
+      { transform: `rotateY(${direction > 0 ? -65 : 65}deg)`, opacity: .6 },
+      { transform: 'rotateY(0deg)', opacity: 1 }
+    ], { duration: 180, easing: 'cubic-bezier(.2,.7,.2,1)' });
   }
   function wheel(event, scroller) {
     if (mode !== 'epub' || !rendition || event.ctrlKey) return;
@@ -170,8 +188,7 @@
   }
   area.addEventListener('wheel', wheel, { passive: false });
   area.addEventListener('keydown', key);
-  previous.addEventListener('click', () => turn(-1));
-  next.addEventListener('click', () => turn(1));
+  turnButtons.forEach(button => button.addEventListener('click', () => turn(Number(button.dataset.turn))));
 
   async function renderFacing(target, forceSingle = false) {
     const match = target?.match(/^page-(\d+)\.xhtml/);
@@ -189,9 +206,13 @@
     area.classList.toggle('facing-pages', spreadStart !== 0 && !singlePage);
     select.value = String(requested);
     position = { start: { index: requested }, atStart: spreadStart === 0, atEnd: spreadStart + (singlePage ? 0 : 1) >= 8 };
-    previous.disabled = position.atStart; next.disabled = position.atEnd;
-    previous.textContent = singlePage ? 'Previous page' : 'Previous spread';
-    next.textContent = singlePage ? 'Next page' : 'Next spread';
+    turnButtons.forEach(button => {
+      const backwards = button.dataset.turn === '-1';
+      button.disabled = backwards ? position.atStart : position.atEnd;
+      const label = `${backwards ? 'Previous' : 'Next'} ${singlePage ? 'page' : 'spread'}`;
+      button.textContent = backwards ? '‹' : '›';
+      button.setAttribute('aria-label', label); button.title = label;
+    });
     const indices = spreadStart === 0 || singlePage ? [spreadStart] : [spreadStart, spreadStart + 1];
     const displays = [];
     for (const index of indices) {
