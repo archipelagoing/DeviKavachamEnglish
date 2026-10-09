@@ -42,3 +42,35 @@ footer p { width: auto; font-size: .9rem; line-height: 1.5; margin: .5rem 0; }
 body:has(.book-spread) #epub-reader .epub-controls { margin-top: .4rem; }
 @media (max-width: 899px) { body { padding: .8rem 1rem; } #epub-area { height: auto; min-height: 0; } select { max-width: 100%; } }
 @media print { nav, .reader-controls, .skip-link, #epub-reader { display: none !important; } #html-reader[hidden] { display: block !important; } body { max-width: none; padding: 0; } .reading-page { break-before: page; max-width: none; border: 0; } .book-header { border: 0; } }
+
+/* Fitted book pages keep all seven verses visible at once. */
+body.book-mode { height: 100svh; overflow: hidden; background: #e9e5dc; }
+.book-mode footer { display: none; }
+.book-mode .book-header { border-bottom: 0; }
+.book-mode #epub-area { min-height: 0; background: #fffdf5; border: 1px solid #d8d2c5; box-shadow: 0 3px 12px #33271818; }
+.book-spread { gap: 3rem; padding: 1.25rem clamp(.75rem, 3vw, 3rem); }
+.book-spread.single-spread { grid-template-columns: minmax(0, 1fr); }
+.book-leaf h2 { text-align: center; font-variant: small-caps; font-size: .8rem; margin-bottom: .8rem; letter-spacing: .04em; }
+.book-leaf-body, .book-leaf-body .epub-container { overflow: hidden !important; }
+.book-mode #epub-area.facing-pages::after { width: 2rem; transform: translateX(-50%); background: linear-gradient(90deg, transparent, #3327180a 48%, #3327181a 50%, #3327180a 52%, transparent); }
+.book-mode .reader-help { margin-bottom: .4rem !important; }
+@media (max-width: 899px) { body.book-mode { padding: .35rem .5rem; } .book-mode h1 { font-size: 1.35rem; } .book-mode nav { gap: .5rem; } .book-mode nav a { font-size: .8rem; } .book-mode .reader-controls { padding: .3rem 0; } .book-spread { padding: .75rem; } }
+
+/* One compact toolbar; repeated source markers stay in the file, hidden visually. */
+.book-header { gap: .5rem 1rem; padding: 0 0 .5rem; flex-wrap: nowrap; }
+.book-header h1 { font-size: clamp(1.3rem, 2.2vw, 1.65rem); white-space: nowrap; }
+.book-header .reader-controls { flex: 1; align-items: center; justify-content: flex-end; padding: 0; gap: .5rem; }
+.book-header nav { flex-wrap: nowrap; gap: .5rem; }
+.book-header .page-controls { gap: .35rem; }
+.book-header .page-controls label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.book-header select { max-width: 15rem; }
+.book-header .text-controls { flex-wrap: nowrap; gap: .35rem; }
+.book-menu { position: relative; }
+.book-menu summary { cursor: pointer; padding: .65rem; min-height: 44px; font-size: .95rem; }
+.book-menu-panel { position: absolute; right: 0; top: 100%; z-index: 6; min-width: 12rem; padding: .5rem; background: var(--paper, #fffdf5); border: 1px solid var(--rule, #d8d2c5); box-shadow: 0 3px 12px #0002; }
+.book-menu-panel a { display: block; padding: .65rem; white-space: nowrap; }
+#epub-help { position: absolute; width: 1px !important; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+.verse + .verse { border: 0; padding: 0; margin-top: .65em; }
+.source-marker { display: none; }
+.verse::before { content: attr(data-label); color: #a04d45; font-size: .9em; font-weight: normal; margin-right: .45em; }
+@media (max-width: 899px) { .book-header { flex-wrap: wrap; gap: .3rem .5rem; } .book-header .reader-controls { order: 3; flex-basis: 100%; justify-content: space-between; } .book-header nav { margin-left: auto; } }

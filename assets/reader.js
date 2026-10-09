@@ -9,7 +9,6 @@
   const message = document.getElementById('epub-status');
   const previous = document.getElementById('epub-previous');
   const next = document.getElementById('epub-next');
-  const narrow = window.matchMedia('(max-width: 899px)');
   const readerView = document.documentElement.dataset.edition === 'reader-view';
   const defaults = { appearance: 'sepia', font: 'serif', width: 'normal', lineHeight: '1.6', size: 1.15 };
   const palettes = { light: { paper: '#ffffff', ink: '#333333', rule: '#b4b4b4' }, dark: { paper: '#333333', ink: '#eeeeee', rule: '#888888' }, sepia: { paper: '#f4ecd8', ink: '#5b4636', rule: '#bbad93' } };
@@ -27,7 +26,7 @@
   }
   let size = preferences.size, book, rendition, loading, rendering, mode = 'text';
   let generation = 0, position, turning = false, gesture = false, wheelTimer;
-  let facing = [], spreadStart = 0;
+  let facing = [], spreadStart = 0, singlePage = false, fitFrame;
 
   function destroyReaders() {
     generation += 1;
@@ -38,11 +37,11 @@
   }
 
   function sizeBook() {
-    if (narrow.matches || mode !== 'epub') { area.style.removeProperty('height'); return; }
-    const available = window.innerHeight - area.getBoundingClientRect().top - document.querySelector('.epub-controls').offsetHeight - 16;
-    area.style.height = `${Math.max(280, available)}px`;
+    if (mode !== 'epub') { area.style.removeProperty('height'); return; }
+    const available = window.innerHeight - area.getBoundingClientRect().top - document.querySelector('.epub-controls').offsetHeight - 32;
+    area.style.height = `${Math.max(80, available)}px`;
   }
-  window.addEventListener('resize', sizeBook);
+  window.addEventListener('resize', () => { sizeBook(); scheduleFit(); });
 
   function applyAppearance(active) {
     if (!readerView) return;
@@ -60,11 +59,11 @@
       reader.themes.default({
         body: { 'background-color': `${palette.paper} !important`, color: `${palette.ink} !important`, 'font-family': `${families[preferences.font]} !important`, 'line-height': `${preferences.lineHeight} !important` },
         '.source-text': { 'font-family': 'inherit !important', 'line-height': `${preferences.lineHeight} !important` },
-        '.verse-label': { color: `${palette.ink} !important` },
-        '.verse + .verse': { 'border-top-color': `${palette.rule} !important` }
+        '.verse::before': { color: `${preferences.appearance === 'dark' ? '#df938b' : '#a04d45'} !important` }
       });
       reader.themes.fontSize(`${size}rem`);
     }
+    scheduleFit();
     try { localStorage.setItem('devi-reader-view-preferences', JSON.stringify({ ...preferences, size })); } catch {}
   }
 
@@ -78,31 +77,11 @@
   function epubTarget(index, target) {
     return `page-${index}.xhtml${target.startsWith('verse-') ? `#${target}` : ''}`;
   }
-  function alignMobile(active, target) {
-    if (!narrow.matches || !target || target === 'page-0.xhtml') return;
-    let frame, rect;
-    if (target.startsWith('epubcfi(')) {
-      const range = active.getRange(target);
-      if (range) {
-        frame = [...area.querySelectorAll('iframe')].find(item => item.contentDocument === range.startContainer.ownerDocument);
-        rect = range.getBoundingClientRect();
-      }
-    } else {
-      const match = target.match(/^page-(\d+)\.xhtml(?:#(.+))?$/);
-      const contents = match && active.getContents().find(item => item.sectionIndex === Number(match[1]));
-      if (contents) {
-        frame = [...area.querySelectorAll('iframe')].find(item => item.contentDocument === contents.document);
-        rect = (match[2] ? contents.document.getElementById(match[2]) : contents.document.querySelector('pre'))?.getBoundingClientRect();
-      }
-    }
-    // EPUB fullsize positioning does not account for the site's header above it.
-    if (frame && rect) window.scrollBy(0, frame.getBoundingClientRect().top + rect.top - 12);
-  }
   async function navigate() {
     const { index, target } = fromHash();
     select.value = String(index);
     if (mode === 'epub' && rendition) {
-      try { const destination = epubTarget(index, target); if (narrow.matches) { await rendition.display(destination); alignMobile(rendition, destination); } else await renderFacing(destination); }
+      try { const destination = epubTarget(index, target); await renderFacing(destination); }
       catch (error) { message.textContent = 'This section could not load. Use Continuous text to keep reading.'; }
     } else {
       document.getElementById(target)?.scrollIntoView({ block: 'start' });
@@ -117,6 +96,7 @@
   function textMode() {
     mode = 'text'; generation += 1; turning = false; position = undefined;
     destroyReaders(); area.style.removeProperty('height');
+    document.body.classList.remove('book-mode');
     epubReader.hidden = true; htmlReader.hidden = false;
     toggle.textContent = 'Read EPUB'; toggle.setAttribute('aria-pressed', 'false');
   }
@@ -135,27 +115,47 @@
     return loading;
   }
   function updateHelp() {
-    area.classList.toggle('facing-pages', !narrow.matches);
-    document.getElementById('epub-help').textContent = narrow.matches ? 'Scroll to read. All sections follow one another.' : 'Scroll to turn to the next pair of pages. Arrow keys work too. Larger text can scroll within each page.';
-    document.querySelector('.epub-controls').hidden = narrow.matches;
+    document.getElementById('epub-help').textContent = 'Scroll or use arrow keys to turn pages. Text automatically fits the page.';
+    document.querySelector('.epub-controls').hidden = false;
+  }
+  function scheduleFit() {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(() => { if (mode === 'epub' && facing.length) fitFacing(); });
+  }
+  function fitFacing() {
+    sizeBook();
+    const panels = [...area.querySelectorAll('.book-leaf-body')];
+    if (!panels.length || panels.some(p => !p.querySelector('iframe')?.contentDocument?.querySelector('pre'))) return;
+    const max = size * 16;
+    function fits(fontSize) {
+      return panels.map(panel => {
+        const doc = panel.querySelector('iframe').contentDocument;
+        const text = doc.querySelector('pre');
+        let style = doc.getElementById('fitted-page-style');
+        if (!style) { style = doc.createElement('style'); style.id = 'fitted-page-style'; doc.head.append(style); }
+        style.textContent = `body{padding:0!important;background:transparent!important}.source-text{font-size:${fontSize}px!important;line-height:${readerView ? preferences.lineHeight : '1.4'}!important}.verse+.verse{border:0!important;padding:0!important;margin-top:.65em!important}`;
+        const rect = text.getBoundingClientRect();
+        return rect.height <= panel.clientHeight - 8 && rect.width <= panel.clientWidth;
+      }).every(Boolean);
+    }
+    let low = 1, high = max;
+    for (let i = 0; i < 14; i++) { const middle = (low + high) / 2; if (fits(middle)) low = middle; else high = middle; }
+    fits(low);
+    area.dataset.fittedSize = low.toFixed(2);
   }
   async function turn(direction) {
-    if (!rendition || turning || narrow.matches) return;
+    if (!rendition || turning) return;
     if ((direction < 0 && position?.atStart) || (direction > 0 && position?.atEnd)) return;
     turning = true;
-    try { const destination = direction > 0 ? spreadStart === 0 ? 1 : spreadStart + 2 : spreadStart === 1 ? 0 : spreadStart - 2; await renderFacing(`page-${destination}.xhtml`); }
+    try { const destination = direction > 0 ? spreadStart === 0 ? 1 : spreadStart + (singlePage ? 1 : 2) : spreadStart === 1 ? 0 : spreadStart - (singlePage ? 1 : 2); await renderFacing(`page-${destination}.xhtml`); }
     catch (error) { message.textContent = 'Unable to turn this page. Use Continuous text to keep reading.'; }
     finally { turning = false; }
   }
   function wheel(event, scroller) {
-    if (mode !== 'epub' || narrow.matches || !rendition || event.ctrlKey) return;
+    if (mode !== 'epub' || !rendition || event.ctrlKey) return;
     const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
     if (!delta) return;
     const direction = Math.sign(delta);
-    if (scroller && Math.abs(event.deltaY) >= Math.abs(event.deltaX) && scroller.scrollHeight > scroller.clientHeight + 2) {
-      const canScroll = direction > 0 ? scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2 : scroller.scrollTop > 2;
-      if (canScroll) return;
-    }
     if (!gesture && ((direction < 0 && position?.atStart) || (direction > 0 && position?.atEnd))) return;
     event.preventDefault();
     clearTimeout(wheelTimer);
@@ -163,12 +163,8 @@
     if (!gesture) { gesture = true; turn(direction); }
   }
   function key(event, scroller) {
-    if (mode !== 'epub' || narrow.matches || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (mode !== 'epub' || event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.target?.closest('a,button,input,select,textarea,[contenteditable="true"]')) return;
-    if (scroller && ['ArrowDown','ArrowUp','PageDown','PageUp'].includes(event.key) && scroller.scrollHeight > scroller.clientHeight + 2) {
-      const down = ['ArrowDown','PageDown'].includes(event.key);
-      if (down ? scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2 : scroller.scrollTop > 2) return;
-    }
     const direction = ['ArrowRight', 'ArrowDown', 'PageDown'].includes(event.key) ? 1 : ['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key) ? -1 : 0;
     if (direction && !((direction < 0 && position?.atStart) || (direction > 0 && position?.atEnd))) { event.preventDefault(); turn(direction); }
   }
@@ -177,20 +173,26 @@
   previous.addEventListener('click', () => turn(-1));
   next.addEventListener('click', () => turn(1));
 
-  async function renderFacing(target) {
+  async function renderFacing(target, forceSingle = false) {
     const match = target?.match(/^page-(\d+)\.xhtml/);
     const requested = match ? Number(match[1]) : book.spine.get(target)?.index || 0;
-    spreadStart = requested === 0 ? 0 : Math.floor((requested - 1) / 2) * 2 + 1;
+    singlePage = forceSingle || innerWidth < 900;
+    spreadStart = singlePage ? requested : requested === 0 ? 0 : Math.floor((requested - 1) / 2) * 2 + 1;
     destroyReaders();
     const token = generation;
     area.classList.add('book-spread');
     area.classList.toggle('opening-spread', spreadStart === 0);
+    area.classList.toggle('single-spread', singlePage);
+    document.body.classList.add('book-mode');
+    window.scrollTo(0, 0);
     updateHelp();
-    area.classList.toggle('facing-pages', spreadStart !== 0);
+    area.classList.toggle('facing-pages', spreadStart !== 0 && !singlePage);
     select.value = String(requested);
-    position = { start: { index: requested }, atStart: spreadStart === 0, atEnd: spreadStart === 7 };
+    position = { start: { index: requested }, atStart: spreadStart === 0, atEnd: spreadStart + (singlePage ? 0 : 1) >= 8 };
     previous.disabled = position.atStart; next.disabled = position.atEnd;
-    const indices = spreadStart === 0 ? [0] : [spreadStart, spreadStart + 1];
+    previous.textContent = singlePage ? 'Previous page' : 'Previous spread';
+    next.textContent = singlePage ? 'Next page' : 'Next spread';
+    const indices = spreadStart === 0 || singlePage ? [spreadStart] : [spreadStart, spreadStart + 1];
     const displays = [];
     for (const index of indices) {
       const leaf = document.createElement('section'); leaf.className = 'book-leaf'; leaf.dataset.page = String(index);
@@ -210,45 +212,15 @@
     }
     sizeBook();
     await Promise.all(displays);
-    if (token === generation) message.textContent = '';
+    if (token === generation) {
+      message.textContent = ''; fitFacing();
+      setTimeout(() => { if (token === generation) fitFacing(); }, 100);
+      setTimeout(() => { if (token === generation) fitFacing(); }, 250);
+    }
   }
 
-  async function render(target) {
-    if (!narrow.matches) return renderFacing(target);
-    destroyReaders();
-    area.classList.remove('book-spread', 'opening-spread');
-    area.style.removeProperty('height');
-    const token = ++generation;
-    const mobileMode = narrow.matches;
-    area.replaceChildren(); turning = false; position = undefined;
-    updateHelp();
-    rendition = book.renderTo(area, mobileMode ? {
-      manager: 'continuous', flow: 'scrolled-continuous', width: '100%', fullsize: true, spread: 'none'
-    } : {
-      manager: 'continuous', flow: 'paginated', width: '100%', height: '100%', spread: 'auto', minSpreadWidth: 0
-    });
-    const active = rendition;
-    active.themes.fontSize(`${size}rem`);
-    applyAppearance(active);
-    active.hooks.content.register(contents => {
-      contents.document.addEventListener('wheel', wheel, { passive: false });
-      contents.document.addEventListener('keydown', key);
-    });
-    active.on('relocated', location => {
-      if (token !== generation || mobileMode !== narrow.matches) return;
-      position = location; previous.disabled = location.atStart; next.disabled = location.atEnd;
-      if (mobileMode) {
-        const visibleFrame = [...area.querySelectorAll('iframe')].find(frame => frame.getBoundingClientRect().bottom > 16 && frame.getBoundingClientRect().top < window.innerHeight);
-        if (visibleFrame) {
-          const verse = visibleFrame.contentDocument?.querySelector('.verse');
-          select.value = String(verse ? Math.ceil(Number(verse.id.slice(6)) / 7) : 0);
-        }
-      } else if (location.start) select.value = String(location.start.index);
-    });
-    try { await active.display(target); }
-    catch (error) { if (token === generation) throw error; }
-    if (token === generation) { alignMobile(active, target); message.textContent = ''; }
-  }
+  async function render(target) { return renderFacing(target); }
+
   async function epubMode() {
     if (rendering) return rendering;
     mode = 'epub';
@@ -280,18 +252,19 @@
     if (mode === 'epub') textMode();
     else { area.hidden = false; htmlReader.after(epubReader); epubMode(); }
   });
-  narrow.addEventListener('change', async () => {
-    if (mode !== 'epub' || !rendition) return;
-    const index = Number(select.value);
-    const target = position?.start?.index === index && position.start.cfi ? position.start.cfi : `page-${index}.xhtml`;
-    try { await render(target); }
-    catch (error) { textMode(); }
+  let viewportTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(viewportTimer);
+    viewportTimer = setTimeout(() => {
+      if (mode === 'epub' && rendition) renderFacing(`page-${select.value}.xhtml`).catch(() => textMode());
+    }, 180);
   });
   function resize(amount) {
     size = Math.max(.9, Math.min(2.2, size + amount));
     document.documentElement.style.setProperty('--reading-size', `${size}rem`);
     for (const active of facing.length ? facing : rendition ? [rendition] : []) active.themes.fontSize(`${size}rem`);
     if (readerView) applyAppearance();
+    scheduleFit();
   }
   document.getElementById('smaller').addEventListener('click', () => resize(-.1));
   document.getElementById('larger').addEventListener('click', () => resize(.1));

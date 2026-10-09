@@ -19,7 +19,15 @@ def render_chunk(chunk):
     parts = [html.escape(chunk[:matches[0].start()])]
     for i, match in enumerate(matches):
         end = matches[i+1].start() if i+1 < len(matches) else len(chunk)
-        parts.append(f'<span class="verse" id="verse-{match[1]}"><span class="verse-label">{html.escape(match[0])}</span>{html.escape(chunk[match.end():end])}</span>')
+        remainder = chunk[match.end():end]
+        leading = re.match(r'^\r?\n', remainder).group()
+        body = remainder[len(leading):]
+        trailing = re.search(r'\s*$', body).group()
+        body = body[:-len(trailing)] if trailing else body
+        suffix = re.search(r' \(' + match[1] + r'\)$', body)
+        ending = suffix.group() if suffix else ''
+        body = body[:-len(ending)] if ending else body
+        parts.append(f'<span class="verse" id="verse-{match[1]}" data-label="(v{match[1]})" aria-label="Verse {match[1]}"><span class="source-marker" aria-hidden="true">{html.escape(match[0] + leading)}</span>{html.escape(body)}<span class="source-marker" aria-hidden="true">{html.escape(ending + trailing)}</span></span>')
     return ''.join(parts)
 
 def build():
@@ -47,6 +55,11 @@ def build():
 <footer><p>56 verses · Eight reading pages</p><p>This edition preserves the supplied text.</p><p>Source reference: <a href="https://stotranidhi.com/en/durga-saptasati-devi-kavacham-in-english/">Stotra Nidhi — Devi Kavacham</a>.</p></footer></body></html>'''.replace('OPTIONS',options).replace('SECTIONS','\n'.join(sections))
     comparison = '<a href="reader-view.html" id="theme-comparison">Reader View version</a>'
     doc = doc.replace('<nav aria-label="Reading formats">', '<nav aria-label="Reading formats">'+comparison)
+    controls = re.search(r'<div class="reader-controls".*?</div></div>\n', doc).group()
+    doc = doc.replace(controls, '')
+    doc = doc.replace('<nav aria-label="Reading formats">', controls + '<nav aria-label="Reading formats">')
+    links = re.search(r'(<a href="reader-view.html".*?)(<button id="epub-toggle")', doc).group(1)
+    doc = doc.replace(links, '<details class="book-menu"><summary>More</summary><div class="book-menu-panel">' + links + '</div></details>')
     (ROOT/'index.html').write_text(doc,encoding='utf-8')
     settings = '''<details id="appearance-settings" class="appearance-settings" hidden><summary>Appearance</summary><div class="appearance-panel"><fieldset><legend>Typeface</legend><label><input type="radio" name="typeface" value="serif" checked> Serif</label><label><input type="radio" name="typeface" value="sans"> Sans-serif</label></fieldset><fieldset><legend>Page color</legend><label><input type="radio" name="appearance" value="light"> Light</label><label><input type="radio" name="appearance" value="dark"> Dark</label><label><input type="radio" name="appearance" value="sepia" checked> Sepia</label></fieldset><label class="setting-row" for="reading-width">Reading width <select id="reading-width"><option value="narrow">Narrow</option><option value="normal" selected>Normal</option><option value="wide">Wide</option></select></label><label class="setting-row" for="line-spacing">Line spacing <select id="line-spacing"><option value="1.4">Compact</option><option value="1.6" selected>Normal</option><option value="1.8">Spacious</option></select></label><button type="button" id="reset-appearance">Reset appearance</button></div></details>'''
     reader_view = doc.replace('<html lang="en">','<html lang="en" data-edition="reader-view" data-appearance="sepia" data-font="serif">')
@@ -56,7 +69,7 @@ def build():
     reader_view = reader_view.replace('<div class="text-controls">','<div class="text-controls">'+settings)
     reader_view = reader_view.replace('<footer>', '<footer><p class="theme-credit">Reader View appearance adapted from <a href="https://github.com/tabreturn/tabreturn.jekyll.theme">tabreturn’s Reader-View theme</a>.</p>')
     (ROOT/'reader-view.html').write_text(reader_view,encoding='utf-8')
-    css = 'body{font-family:Georgia,"Times New Roman",serif;color:#211e18;background:#fffff8;margin:0;padding:1rem;line-height:1.65}.source-text{font:inherit;white-space:pre-wrap;tab-size:8;overflow-wrap:anywhere;margin:0}.verse{display:block}.verse+.verse{border-top:1px solid #d8d2c5;padding-top:.7em}.verse-label{font-weight:bold;font-variant:small-caps;color:#593322}'
+    css = 'body{font-family:Georgia,"Times New Roman",serif;color:#211e18;background:#fffff8;margin:0;padding:1rem;line-height:1.65}.source-text{font:inherit;white-space:pre-wrap;tab-size:8;overflow-wrap:anywhere;margin:0}.verse{display:block}.verse+.verse{margin-top:.65em}.source-marker{display:none}.verse::before{content:attr(data-label);color:#a04d45;font-size:.9em;font-weight:normal;margin-right:.45em}'
     xhtmls = []
     for i,chunk in enumerate(chunks):
         xhtmls.append('<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><title>'+titles[i]+'</title><link rel="stylesheet" href="book.css"/></head><body><pre class="source-text">'+render_chunk(chunk)+'</pre></body></html>')

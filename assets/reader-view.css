@@ -31,3 +31,9 @@ button:hover:not(:disabled), summary:hover { background: var(--hover); }
 .theme-credit { font-size: .85rem; }
 @media (max-width: 600px) { .reader-controls { align-items: center; } .text-controls { margin-left: auto; } .appearance-panel { right: -5.8rem; } }
 @media print { html, body { background: white; color: #211e18; } .appearance-settings { display: none; } pre.source-text { color: #211e18; } }
+
+body.book-mode { background: var(--hover); }
+.book-mode #epub-area { background: var(--paper); border-color: var(--rule); }
+
+:root[data-appearance="dark"] .verse::before { color: #df938b; }
+.book-header h1 { font-size: clamp(1.3rem, 2.2vw, 1.65rem); }
