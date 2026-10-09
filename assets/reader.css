@@ -95,15 +95,15 @@ body.book-mode { height: 100svh; overflow: hidden; background: #e9e5dc; }
  .book-menu-panel a { display: block; padding: .65rem; }
 }
 
-/* A red cloth cover, narrow spine, and paper edges frame the open pages. */
+/* The cover sits beneath a continuous paper spread; the binding is shaded paper. */
 .epub-controls [data-turn] { width: 44px; padding: 0; font-size: 2rem; line-height: 1; border-color: transparent; border-radius: 50%; }
 .epub-controls [data-turn]:hover:not(:disabled) { background: #8b3a2920; }
 .epub-controls { gap: 2rem; }
-.book-mode #epub-area.book-spread { background: linear-gradient(90deg, #722c31, #9a4146 12%, #813238 48%, #552025 50%, #813238 52%, #9a4146 88%, #722c31); border: 1px solid #57252a; border-radius: 5px 8px 8px 5px; padding: .6rem; gap: .6rem; perspective: 1600px; overflow: hidden; box-shadow: 0 4px 0 #57252a, 0 7px 0 #401b20, 0 10px 20px #30201930; }
+.book-mode #epub-area.book-spread { background: linear-gradient(90deg, #722c31, #9a4146 12%, #813238 48%, #552025 50%, #813238 52%, #9a4146 88%, #722c31); border: 1px solid #57252a; border-radius: 5px 8px 8px 5px; padding: .5rem .5rem .7rem; gap: 0; perspective: 1600px; overflow: hidden; box-shadow: 0 2px 0 #bda98b, 0 4px 0 #ece1c9, 0 6px 0 #bda98b, 0 9px 0 #64282f, 0 11px 0 #401b20, 0 15px 24px #30201930; }
 .book-spread .book-leaf { background: var(--paper, #fffdf5); padding: 1.15rem clamp(.75rem, 2vw, 2rem); border-radius: 2px 4px 4px 2px; box-shadow: inset 0 -2px 0 #cfc6b2, inset 0 -4px 0 #f0eadc, 0 1px 3px #321b1850; backface-visibility: hidden; }
-.book-spread.facing-pages .book-leaf:first-child { background-image: linear-gradient(90deg, transparent 93%, #4c302012); }
-.book-spread.facing-pages .book-leaf:last-child { background-image: linear-gradient(90deg, #4c302012, transparent 7%); }
-.book-mode #epub-area.book-spread.facing-pages::after { width: .6rem; background: linear-gradient(90deg, #9a4146, #4b1b21 50%, #9a4146); transform: translateX(-50%); top: .6rem; bottom: .6rem; }
+.book-spread.facing-pages .book-leaf:first-child { border-radius: 3px 0 0 3px; background-image: linear-gradient(90deg, transparent 88%, #4c302006 95%, #4c302022 100%); }
+.book-spread.facing-pages .book-leaf:last-child { border-radius: 0 3px 3px 0; background-image: linear-gradient(90deg, #4c302026, #4c302008 5%, transparent 12%); }
+.book-mode #epub-area.book-spread.facing-pages::after { width: 1.5rem; background: linear-gradient(90deg, transparent, #3e2c1810 42%, #3e2c1845 50%, #3e2c1810 58%, transparent); transform: translateX(-50%); top: .5rem; bottom: .7rem; }
 .opening-spread .book-leaf { width: 100%; }
 @media (max-width: 899px) { .book-mode #epub-area.book-spread { padding: .4rem; } .book-spread .book-leaf { padding: .7rem; } }
 @media (prefers-reduced-motion: reduce) { .book-leaf { transform: none !important; } }
@@ -131,3 +131,7 @@ body.book-mode { height: 100svh; overflow: hidden; background: #e9e5dc; }
  .book-header .reader-controls { gap: .3rem; }
  .book-header .text-controls { gap: .2rem; }
 }
+
+.book-header h1 { display: inline-flex; align-items: center; gap: .4rem; }
+.site-logo { display: block; width: 26px; height: 26px; flex: none; }
+@media (max-width: 899px) { .site-logo { width: 20px; height: 20px; } .book-header h1 { gap: .25rem; } }
