@@ -122,3 +122,15 @@ body.book-mode { height: 100svh; overflow: hidden; background: #e9e5dc; }
 .opening-spread .book-leaf { width: 100%; }
 @media (max-width: 899px) { .book-mode #epub-area.book-spread { padding: .4rem; } .book-spread .book-leaf { padding: .7rem; } }
 @media (prefers-reduced-motion: reduce) { .book-leaf { transform: none !important; } }
+
+/* A two-sided sheet hinges at the fold above the newly fitted spread. */
+.turn-overlay { position: fixed; z-index: 3; pointer-events: none; perspective: 1800px; overflow: hidden; }
+.turn-overlay .book-leaf { background: var(--paper, #fffdf5); padding: 1.15rem clamp(.75rem, 2vw, 2rem); }
+.turn-overlay .verse::before { content: none; }
+.turn-sheet { z-index: 2; transform-style: preserve-3d; }
+.turn-face { position: absolute; inset: 0; width: 100%; height: 100%; backface-visibility: hidden; overflow: hidden; background: var(--paper, #fffdf5); }
+.turn-front { transform: rotateY(0deg); }
+.turn-back { transform: rotateY(180deg); }
+.turn-back::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #33271816, transparent 25%, transparent 80%, #3327180a); pointer-events: none; }
+@media (max-width: 899px) { .turn-overlay .book-leaf { padding: .7rem; } }
+@media print { .turn-overlay { display: none; } }

@@ -44,18 +44,28 @@
   let size = preferences.size, book, rendition, loading, rendering, mode = 'text';
   let generation = 0, position, turning = false, gesture = false, wheelTimer;
   let facing = [], spreadStart = 0, singlePage = false, fitFrame;
-  let turnAnimations = [];
+  let turnAnimations = [], turnOverlay, turnController;
+  const pendingDisplays = new Map();
+
+  function disposeReader(active) {
+    const pending = pendingDisplays.get(active);
+    // EPUB.js queues startup before display. Destroying it during startup
+    // removes the book while that queued work still expects it to exist.
+    if (pending) pending.then(() => active.destroy(), () => active.destroy()).catch(() => {});
+    else active.destroy();
+  }
 
   function cancelTurnAnimation() {
     turnAnimations.forEach(animation => animation.cancel());
     turnAnimations = [];
+    turnOverlay?.remove(); turnOverlay = undefined;
   }
 
-  function destroyReaders() {
-    cancelTurnAnimation();
+  function destroyReaders(preserveTurn = false) {
+    if (!preserveTurn) { turnController?.abort(); cancelTurnAnimation(); }
     generation += 1;
-    if (facing.length) facing.forEach(active => active.destroy());
-    else if (rendition) rendition.destroy();
+    if (facing.length) facing.forEach(disposeReader);
+    else if (rendition) disposeReader(rendition);
     facing = []; rendition = undefined;
     area.replaceChildren();
   }
@@ -125,6 +135,7 @@
     document.body.classList.remove('book-mode');
     epubReader.hidden = true; htmlReader.hidden = false;
     pageNavigation.hidden = true;
+    area.removeAttribute('aria-busy');
     toggle.textContent = 'Read EPUB'; toggle.setAttribute('aria-pressed', 'false');
   }
   function script(src) {
@@ -176,33 +187,111 @@
     turning = true;
     area.setAttribute('aria-busy', 'true');
     const token = generation;
+    const controller = new AbortController();
+    turnController = controller;
     try {
       const destination = direction > 0
         ? spreadStart === 0 ? 1 : spreadStart + (singlePage ? 1 : 2)
         : spreadStart === 1 ? 0 : spreadStart - (singlePage ? 1 : 2);
-      await animateTurn(direction, false);
-      if (mode !== 'epub' || token !== generation) return;
-      await renderFacing(`page-${destination}.xhtml`);
-      if (mode === 'epub' && generation === token + 1) await animateTurn(direction, true);
+      const overlay = captureSpread();
+      await Promise.race([
+        renderFacing(`page-${destination}.xhtml`, false, true),
+        new Promise(resolve => controller.signal.addEventListener('abort', resolve, { once: true }))
+      ]);
+      if (mode === 'epub' && generation === token + 1 && overlay === turnOverlay) {
+        await animateTurn(direction, overlay);
+      }
     }
-    catch (error) { message.textContent = 'Unable to turn this page. Use Continuous text to keep reading.'; }
-    finally { turning = false; area.removeAttribute('aria-busy'); }
+    catch (error) {
+      if (!controller.signal.aborted) message.textContent = 'Unable to turn this page. Use Continuous text to keep reading.';
+    }
+    finally {
+      if (turnController === controller) {
+        cancelTurnAnimation(); turning = false; area.removeAttribute('aria-busy'); turnController = undefined;
+      }
+    }
   }
-  async function animateTurn(direction, entering) {
-    if (mode !== 'epub' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const leaves = [...area.querySelectorAll('.book-leaf')];
-    if (!leaves.length || !leaves[0].animate) return;
+  function snapshotLeaf(leaf) {
+    const clone = leaf.cloneNode(true);
+    // Iframe clones have no rendered content. Copy the fitted document with its
+    // computed typography so the turning paper carries the text being read.
+    const frame = leaf.querySelector('iframe');
+    const source = frame?.contentDocument?.body;
+    if (source) {
+      const body = source.cloneNode(true);
+      const originals = [source, ...source.querySelectorAll('*')];
+      const copies = [body, ...body.querySelectorAll('*')];
+      const properties = ['display', 'color', 'background-color', 'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing', 'white-space', 'overflow-wrap', 'text-align', 'margin', 'padding', 'border', 'box-sizing', 'width', 'height'];
+      originals.forEach((original, index) => {
+        const style = frame.contentWindow.getComputedStyle(original);
+        properties.forEach(property => copies[index].style.setProperty(property, style.getPropertyValue(property)));
+        if (original.classList.contains('verse')) {
+          const markerStyle = frame.contentWindow.getComputedStyle(original, '::before');
+          const marker = document.createElement('span');
+          marker.textContent = original.dataset.label;
+          properties.forEach(property => marker.style.setProperty(property, markerStyle.getPropertyValue(property)));
+          copies[index].prepend(marker);
+        }
+      });
+      const viewport = document.createElement('div');
+      viewport.style.cssText = `width:${frame.clientWidth}px;height:${frame.clientHeight}px;overflow:hidden;`;
+      viewport.append(body);
+      clone.querySelector('.book-leaf-body').replaceChildren(viewport);
+    }
+    clone.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+    clone.removeAttribute('aria-labelledby');
+    return clone;
+  }
+
+  function captureSpread() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !area.animate) return;
     cancelTurnAnimation();
-    const resting = { transform: 'translateX(0)', opacity: 1 };
-    const shifted = { transform: `translateX(${direction * (entering ? 8 : -8)}px)`, opacity: 0 };
-    const animations = leaves.map(leaf => leaf.animate(
-      entering ? [shifted, resting] : [resting, shifted],
-      { duration: entering ? 160 : 100, easing: 'ease-out', fill: 'both' }
-    ));
-    turnAnimations = animations;
-    // Cancellation is expected when switching modes, jumping sections, or resizing.
-    await Promise.all(animations.map(animation => animation.finished.catch(() => {})));
-    if (entering) animations.forEach(animation => animation.cancel());
+    const rect = area.getBoundingClientRect();
+    const overlay = document.createElement('div');
+    overlay.className = 'turn-overlay';
+    overlay.setAttribute('aria-hidden', 'true'); overlay.inert = true;
+    overlay.style.cssText = `left:${rect.left + area.clientLeft}px;top:${rect.top + area.clientTop}px;width:${area.clientWidth}px;height:${area.clientHeight}px;`;
+    area.querySelectorAll('.book-leaf').forEach(leaf => {
+      const bounds = leaf.getBoundingClientRect();
+      const clone = snapshotLeaf(leaf);
+      clone.style.cssText = `position:absolute;left:${bounds.left - rect.left - area.clientLeft}px;top:${bounds.top - rect.top - area.clientTop}px;width:${bounds.width}px;height:${bounds.height}px;`;
+      overlay.append(clone);
+    });
+    document.body.append(overlay); turnOverlay = overlay;
+    return overlay;
+  }
+
+  async function animateTurn(direction, overlay) {
+    if (!overlay || overlay !== turnOverlay) return;
+    const oldLeaves = [...overlay.children];
+    const newLeaves = [...area.querySelectorAll('.book-leaf')];
+    const facingTurn = oldLeaves.length === 2 && newLeaves.length === 2;
+    const front = facingTurn ? direction > 0 ? oldLeaves[1] : oldLeaves[0] : document.createElement('div');
+    const sheet = document.createElement('div'); sheet.className = 'turn-sheet';
+    if (facingTurn) {
+      sheet.style.cssText = front.style.cssText;
+      front.style.cssText = '';
+    } else {
+      // A cover or a narrow screen turns as one full-width sheet.
+      sheet.style.cssText = 'position:absolute;inset:0;';
+      oldLeaves.forEach(leaf => front.append(leaf));
+    }
+    front.classList.add('turn-face', 'turn-front');
+    sheet.style.transformOrigin = direction > 0 ? 'left center' : 'right center';
+    const back = facingTurn ? snapshotLeaf(direction > 0 ? newLeaves[0] : newLeaves[1]) : document.createElement('div');
+    back.style.cssText = ''; back.classList.add('turn-face', 'turn-back');
+    sheet.append(front, back); overlay.append(sheet);
+    const rotation = sheet.animate([
+      { transform: 'rotateY(0deg)' },
+      { transform: `rotateY(${direction > 0 ? -180 : 180}deg)` }
+    ], { duration: 620, easing: 'cubic-bezier(.35,.05,.3,1)', fill: 'forwards' });
+    const shading = sheet.animate([
+      { boxShadow: '0 0 0 #0000' },
+      { boxShadow: '0 12px 32px #21150d55', offset: .5 },
+      { boxShadow: '0 0 0 #0000' }
+    ], { duration: 620, easing: 'ease-in-out', fill: 'forwards' });
+    turnAnimations = [rotation, shading];
+    await Promise.all(turnAnimations.map(animation => animation.finished.catch(() => {})));
   }
   function wheel(event, scroller) {
     if (mode !== 'epub' || !rendition || event.ctrlKey) return;
@@ -225,12 +314,12 @@
   area.addEventListener('keydown', key);
   turnButtons.forEach(button => button.addEventListener('click', () => turn(Number(button.dataset.turn))));
 
-  async function renderFacing(target, forceSingle = false) {
+  async function renderFacing(target, forceSingle = false, preserveTurn = false) {
     const match = target?.match(/^page-(\d+)\.xhtml/);
     const requested = match ? Number(match[1]) : book.spine.get(target)?.index || 0;
     singlePage = forceSingle || innerWidth < 900;
     spreadStart = singlePage ? requested : requested === 0 ? 0 : Math.floor((requested - 1) / 2) * 2 + 1;
-    destroyReaders();
+    destroyReaders(preserveTurn);
     const token = generation;
     area.classList.add('book-spread');
     area.classList.toggle('opening-spread', spreadStart === 0);
@@ -267,7 +356,10 @@
         contents.document.addEventListener('wheel', event => wheel(event, active.manager.container), { passive: false });
         contents.document.addEventListener('keydown', event => key(event, active.manager.container));
       });
-      displays.push(active.display(index === requested && target ? target : `page-${index}.xhtml`));
+      const display = active.display(index === requested && target ? target : `page-${index}.xhtml`);
+      pendingDisplays.set(active, display);
+      display.then(() => pendingDisplays.delete(active), () => pendingDisplays.delete(active));
+      displays.push(display);
     }
     sizeBook();
     await Promise.all(displays);
