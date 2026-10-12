@@ -13,7 +13,10 @@
   const bookPosition = document.getElementById('book-position');
   const popovers = [...document.querySelectorAll('.book-menu, .appearance-settings')];
   popovers.forEach(popover => popover.addEventListener('toggle', () => {
-    if (popover.open) popovers.forEach(other => { if (other !== popover) other.open = false; });
+    if (popover.open) {
+      popover.style.setProperty('--popover-top', `${popover.getBoundingClientRect().bottom + 8}px`);
+      popovers.forEach(other => { if (other !== popover) other.open = false; });
+    }
   }));
   document.addEventListener('pointerdown', event => {
     popovers.forEach(popover => { if (!popover.contains(event.target)) popover.open = false; });

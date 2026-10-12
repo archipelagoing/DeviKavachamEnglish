@@ -28,7 +28,7 @@ button:hover:not(:disabled), summary:hover { background: var(--hover); }
 .appearance-panel input { accent-color: var(--ink); width: 1rem; height: 1rem; }
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .95rem; margin: 0 0 .75rem; }
 .theme-credit { font-size: .85rem; }
-@media (max-width: 899px) { .appearance-panel { right: 0; } }
+@media (max-width: 899px) { .appearance-panel { position: fixed; top: var(--popover-top, 7rem); left: .5rem; right: .5rem; width: auto; max-height: calc(100svh - var(--popover-top, 7rem) - .5rem); overflow-y: auto; } }
 @media print { html, body { background: white; color: #211e18; } .appearance-settings { display: none; } pre.source-text { color: #211e18; } }
 
 body.book-mode { background: var(--hover); }
