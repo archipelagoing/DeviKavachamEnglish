@@ -43,7 +43,7 @@
   }
   let size = preferences.size, book, rendition, loading, rendering, mode = 'text';
   let generation = 0, position, turning = false, gesture = false, wheelTimer;
-  let facing = [], spreadStart = 0, singlePage = false, fitFrame;
+  let facing = [], spreadStart = 0, singlePage = false, fitFrame, currentTarget;
   let turnAnimations = [], turnOverlay, turnController;
   const pendingDisplays = new Map();
 
@@ -94,7 +94,7 @@
         body: { 'background-color': `${palette.paper} !important`, color: `${palette.ink} !important`, 'font-family': `${families[preferences.font]} !important`, 'line-height': `${preferences.lineHeight} !important` },
         '.source-text': { 'font-family': 'inherit !important', 'line-height': `${preferences.lineHeight} !important` },
         '.verse': { color: `${preferences.appearance === 'dark' ? '#eeeeee' : '#211e18'} !important` },
-        '.verse[data-tone="even"]': { color: `${preferences.appearance === 'dark' ? '#d4b99c' : '#694633'} !important` },
+        '.verse[data-tone="even"]': { color: `${preferences.appearance === 'dark' ? '#9ed3b4' : '#245c45'} !important` },
         '.verse::before': { color: `${preferences.appearance === 'dark' ? '#df938b' : '#a04d45'} !important` }
       });
       reader.themes.fontSize(`${size}rem`);
@@ -129,11 +129,25 @@
   });
   window.addEventListener('hashchange', navigate);
 
+  function updatePageOptions(bookLayout = false) {
+    const layout = bookLayout ? singlePage ? 'single' : 'facing' : 'text';
+    if (select.dataset.layout === layout) return;
+    select.dataset.layout = layout;
+    const indices = layout === 'facing' ? [0, 1, 3, 5, 7] : Array.from({ length: 9 }, (_, index) => index);
+    select.replaceChildren(...indices.map(index => {
+      const option = document.createElement('option'); option.value = String(index);
+      option.textContent = index === 0 ? 'Opening' : layout === 'facing' ? `Pages ${index}–${index + 1}` : layout === 'single' ? `Page ${index}` : `Verses ${(index - 1) * 7 + 1}–${index * 7}`;
+      return option;
+    }));
+    document.querySelector('label[for="page-select"]').textContent = bookLayout ? 'Go to page' : 'Go to verses';
+  }
+
   function textMode() {
     mode = 'text'; generation += 1; turning = false; position = undefined;
     destroyReaders(); area.style.removeProperty('height');
     document.body.classList.remove('book-mode');
     epubReader.hidden = true; htmlReader.hidden = false;
+    const index = select.value; updatePageOptions(); select.value = index;
     pageNavigation.hidden = true;
     area.removeAttribute('aria-busy');
     toggle.textContent = 'Read EPUB'; toggle.setAttribute('aria-pressed', 'false');
@@ -315,6 +329,7 @@
   turnButtons.forEach(button => button.addEventListener('click', () => turn(Number(button.dataset.turn))));
 
   async function renderFacing(target, forceSingle = false, preserveTurn = false) {
+    currentTarget = target;
     const match = target?.match(/^page-(\d+)\.xhtml/);
     const requested = match ? Number(match[1]) : book.spine.get(target)?.index || 0;
     singlePage = forceSingle || innerWidth < 900;
@@ -328,7 +343,8 @@
     window.scrollTo(0, 0);
     updateHelp();
     area.classList.toggle('facing-pages', spreadStart !== 0 && !singlePage);
-    select.value = String(requested);
+    updatePageOptions(true);
+    select.value = String(singlePage ? requested : spreadStart);
     position = { start: { index: requested }, atStart: spreadStart === 0, atEnd: spreadStart + (singlePage ? 0 : 1) >= 8 };
     bookPosition.textContent = spreadStart === 0 ? 'Opening' : singlePage ? `${spreadStart} / 8` : `${spreadStart}–${spreadStart + 1} / 8`;
     turnButtons.forEach(button => {
@@ -356,7 +372,7 @@
         contents.document.addEventListener('wheel', event => wheel(event, active.manager.container), { passive: false });
         contents.document.addEventListener('keydown', event => key(event, active.manager.container));
       });
-      const display = active.display(index === requested && target ? target : `page-${index}.xhtml`);
+      const display = active.display(`page-${index}.xhtml`);
       pendingDisplays.set(active, display);
       display.then(() => pendingDisplays.delete(active), () => pendingDisplays.delete(active));
       displays.push(display);
@@ -366,6 +382,12 @@
     await Promise.all([...area.querySelectorAll('iframe')].map(frame => frame.contentDocument?.fonts?.ready));
     if (token === generation) {
       message.textContent = ''; fitFacing();
+      const verse = target?.match(/#(verse-\d+)$/)?.[1];
+      history.replaceState(null, '', verse ? `#${verse}` : `#page-${requested}`);
+      if (verse) area.querySelectorAll('iframe').forEach(frame => {
+        const highlighted = frame.contentDocument?.getElementById(verse);
+        if (highlighted) { highlighted.style.outline = `2px solid ${readerView && preferences.appearance === 'dark' ? '#9ed3b4' : '#245c45'}`; highlighted.style.outlineOffset = '3px'; }
+      });
       area.querySelectorAll('.book-leaf').forEach(leaf => leaf.style.removeProperty('visibility'));
     }
   }
@@ -408,7 +430,7 @@
   window.addEventListener('resize', () => {
     clearTimeout(viewportTimer);
     viewportTimer = setTimeout(() => {
-      if (mode === 'epub' && rendition) renderFacing(`page-${select.value}.xhtml`).catch(() => textMode());
+      if (mode === 'epub' && rendition) renderFacing(currentTarget || `page-${select.value}.xhtml`).catch(() => textMode());
     }, 180);
   });
   function resize(amount) {

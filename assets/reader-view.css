@@ -38,4 +38,4 @@ body.book-mode { background: var(--hover); }
 /* Header tones follow the selected page palette. */
 :root { --header-tint: #f4eedf; --header-base: #eee6d5; }
 :root[data-appearance="light"] { --header-tint: #faf9f6; --header-base: #f2f1ee; }
-:root[data-appearance="dark"] { --header-tint: #3c3935; --header-base: #373532; --control-rule: #ffffff26; --verse-ink: #eee; --alternate-ink: #d4b99c; }
+:root[data-appearance="dark"] { --header-tint: #3c3935; --header-base: #373532; --control-rule: #ffffff26; --verse-ink: #eee; --alternate-ink: #9ed3b4; }

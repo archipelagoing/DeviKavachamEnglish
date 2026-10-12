@@ -1,0 +1,55 @@
+/* Reading companions use the same paper, ink, and top navigation as the book. */
+.guide-page { min-height: 100svh; padding: .65rem 1rem; background: var(--paper); }
+.site-title { display: inline-flex; align-items: center; gap: .4rem; color: var(--ink); font: 1.35rem/1.25 Georgia, 'Times New Roman', serif; text-decoration: none; white-space: nowrap; }
+.guide-page .book-header { justify-content: flex-start; }
+.guide-page .site-tabs { margin-left: auto; }
+.guide-main { width: min(100%, 72rem); margin: 3.5rem auto 4rem; }
+.guide-heading { max-width: 49rem; margin-bottom: 2.5rem; }
+.eyebrow { margin: 0 0 1rem; color: var(--alternate-ink); font: .7rem/1.4 Helvetica, Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.guide-heading h1 { color: var(--ink); font-size: clamp(2rem, 4.5vw, 3.8rem); line-height: 1.1; letter-spacing: -.025em; margin-bottom: 1rem; }
+.guide-intro { max-width: 42rem; margin: 0; font-size: 1.2rem; line-height: 1.65; color: var(--muted); }
+.contents-layout, .about-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: start; }
+.guide-note { margin: 0 0 1.5rem; color: var(--muted); font: .85rem/1.7 Helvetica, Arial, sans-serif; max-width: 37rem; }
+.contents-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--control-rule); }
+.contents-list li { border-bottom: 1px solid var(--control-rule); }
+.contents-list a { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) 1rem; gap: .8rem; padding: 1.3rem .25rem; text-decoration: none; color: var(--ink); border-radius: 5px; }
+.contents-list a:hover { background: var(--hover); }
+.verse-range { padding-top: .2rem; color: var(--alternate-ink); font: .75rem/1.5 Helvetica, Arial, sans-serif; font-variant-numeric: tabular-nums; }
+.contents-list h2 { margin: 0 0 .35rem; font-size: 1.2rem; line-height: 1.3; font-weight: normal; }
+.contents-list p { margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.6; }
+.link-arrow { color: var(--alternate-ink); }
+.artwork { margin: 0; }
+.artwork > a { display: block; background: var(--hover); padding: .7rem; border: 1px solid var(--control-rule); border-radius: 4px; }
+.artwork img { display: block; width: 100%; height: auto; border-radius: 2px; }
+.artwork > .print-frame { position: relative; padding: 0; aspect-ratio: 730 / 986; overflow: hidden; }
+.print-frame img { position: absolute; width: 123.43%; max-width: none; left: -2.88%; top: -11.56%; }
+.artwork figcaption { padding-top: .8rem; color: var(--muted); font: .75rem/1.65 Helvetica, Arial, sans-serif; }
+.artwork figcaption a, .source-link { text-decoration-color: var(--control-rule); }
+.aside-note { margin: 2rem 0 0; padding-top: 1.3rem; border-top: 1px solid var(--control-rule); }
+.aside-note h2 { margin: 0 0 .65rem; font-size: 1.2rem; font-weight: normal; }
+.aside-note p { margin: 0 0 .8rem; color: var(--muted); font-size: .95rem; line-height: 1.65; }
+.aside-note > a, .text-link { color: var(--alternate-ink); font: .85rem/1.6 Helvetica, Arial, sans-serif; }
+.about-copy section { margin-bottom: 2.5rem; }
+.about-copy h2 { margin: 0 0 .8rem; font-size: 1.55rem; line-height: 1.3; font-weight: normal; }
+.about-copy p { margin: 0 0 1rem; font-size: 1.1rem; line-height: 1.8; }
+.source-link { font-size: .9rem; }
+.edition-note { padding-top: 1.5rem; border-top: 1px solid var(--control-rule); }
+.guide-source { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--control-rule); color: var(--muted); font: .85rem/1.7 Helvetica, Arial, sans-serif; }
+.guide-source h2 { margin: 0 0 .75rem; font: 1.2rem/1.4 Georgia, serif; }
+.guide-source p { margin: 0; max-width: 48rem; }
+.guide-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; width: min(100%, 72rem); margin: 0 auto; padding: 1rem 0; color: var(--muted); }
+.guide-footer p, .guide-footer a { font: .8rem/1.5 Helvetica, Arial, sans-serif; }
+@media (max-width: 899px) {
+ .guide-page { padding: .35rem .5rem; }
+ .guide-page .book-header .site-tabs { margin: 0; }
+ .guide-main { margin: 2rem auto; padding: 0 .6rem; }
+ .site-title { font-size: 1.15rem; }
+ .contents-layout, .about-layout { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+ .contents-aside, .about-art { max-width: 28rem; width: 100%; margin: 0 auto; }
+ .guide-heading { margin-bottom: 1.8rem; }
+ .guide-intro { font-size: 1.05rem; }
+ .contents-list a { grid-template-columns: 2.8rem minmax(0, 1fr) 1rem; gap: .5rem; }
+ .about-copy p { font-size: 1rem; }
+ .guide-footer { padding: 1rem .6rem; }
+}
+@media print { .guide-main { margin: 1rem 0; width: 100%; } .contents-layout, .about-layout { display: block; } .artwork { max-width: 16rem; } .guide-footer { display: none; } }

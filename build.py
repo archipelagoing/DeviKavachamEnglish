@@ -30,6 +30,23 @@ def render_chunk(chunk):
         parts.append(f'<span class="verse" id="verse-{match[1]}" data-label="(v{match[1]})" data-tone="{'even' if int(match[1]) % 2 == 0 else 'odd'}" aria-label="Verse {match[1]}"><span class="source-marker" aria-hidden="true">{html.escape(match[0] + leading)}</span>{html.escape(body)}<span class="source-marker" aria-hidden="true">{html.escape(ending + trailing)}</span></span>')
     return ''.join(parts)
 
+def site_tabs(active):
+    tabs = [('read', 'index.html', 'Read'), ('contents', 'contents.html', 'Contents'), ('about', 'about.html', 'About')]
+    links = ''.join(f'<a href="{url}"' + (' data-read data-resume' if key == 'read' else '') + (' aria-current="page"' if key == active else '') + f'>{label}</a>' for key, url, label in tabs)
+    return '<nav class="site-tabs" aria-label="Explore Devi Kavacham">' + links + '</nav>'
+
+
+def build_guides():
+    for name, title, description in [
+        ('contents', 'Contents · Devi Kavacham', 'Explore the Devi Kavacham by theme, with direct links to its 56 verses.'),
+        ('about', 'About · Devi Kavacham', 'Learn about the meaning, protective prayer, and devotional context of the Devi Kavacham.')
+    ]:
+        content = (ROOT / 'templates' / f'{name}.html').read_text(encoding='utf-8')
+        document = f'''<!doctype html>
+<html lang="en" data-edition="reader-view" data-appearance="sepia" data-font="serif"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="{description}"><title>{title}</title><link rel="icon" href="assets/lotus.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/reader.css"><link rel="stylesheet" href="assets/reader-view.css"><link rel="stylesheet" href="assets/guide.css"><script src="assets/site.js" defer></script></head>
+<body class="guide-page"><a class="skip-link" href="#guide">Skip to content</a><header class="book-header"><a class="site-title" data-read data-resume href="index.html"><img class="site-logo" src="assets/lotus.svg" alt="" width="24" height="24">Devi Kavacham</a>{site_tabs(name)}</header><main id="guide" class="guide-main">{content}</main><footer class="guide-footer"><p>Devi Kavacham · An English reading edition</p><a data-read data-resume href="index.html">Return to reading</a></footer></body></html>'''
+        (ROOT / f'{name}.html').write_text(document, encoding='utf-8')
+
 def build():
     raw = SOURCE.read_bytes()
     text = raw.decode('utf-8')
@@ -47,10 +64,11 @@ def build():
         sections.append(f'<section class="reading-page" id="page-{i}" aria-labelledby="heading-{i}"><h2 id="heading-{i}" tabindex="-1">{titles[i]}</h2><pre class="source-text">{body}</pre></section>')
     options = ''.join(f'<option value="{i}">{title}</option>' for i,title in enumerate(titles))
     doc = '''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Devi Kavacham, presented in a quiet reading edition with 56 verses and an EPUB download."><title>Devi Kavacham</title><link rel="icon" href="assets/lotus.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/vendor/tufte.css"><link rel="stylesheet" href="assets/reader.css"><script src="assets/reader.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Devi Kavacham, presented in a quiet reading edition with 56 verses and an EPUB download."><title>Devi Kavacham</title><link rel="icon" href="assets/lotus.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/vendor/tufte.css"><link rel="stylesheet" href="assets/reader.css"><script src="assets/site.js" defer></script><script src="assets/reader.js" defer></script></head>
 <body><a class="skip-link" href="#reading">Skip to text</a>
 <header class="book-header">
 <h1><img class="site-logo" src="assets/lotus.svg" alt="" width="26" height="26">Devi Kavacham</h1>
+SITE_TABS
 <div class="reader-controls" id="reader-controls" hidden>
 <div class="page-controls"><label for="page-select">Go to verses</label><select id="page-select">OPTIONS</select></div>
 <div class="text-controls"><div class="text-size-control" role="group" aria-label="Text size"><button type="button" id="smaller" aria-label="Decrease text size">A−</button><button type="button" id="larger" aria-label="Increase text size">A+</button></div></div>
@@ -61,7 +79,7 @@ def build():
 <main id="reading">
 <article id="html-reader">SECTIONS</article>
 <section id="epub-reader" hidden aria-label="EPUB reader"><p id="epub-help" class="reader-help"></p><div id="epub-area" tabindex="0" role="region" aria-label="Book pages" aria-describedby="epub-help"></div><p id="epub-status" role="status" aria-live="polite"></p></section></main>
-<footer><p>56 verses · Eight reading pages</p><p>This edition preserves the supplied text.</p><p>Source reference: <a href="https://stotranidhi.com/en/durga-saptasati-devi-kavacham-in-english/">Stotra Nidhi — Devi Kavacham</a>.</p></footer></body></html>'''.replace('OPTIONS',options).replace('SECTIONS','\n'.join(sections))
+<footer><p>56 verses · Eight reading pages</p><p>This edition preserves the supplied text.</p><p>Source reference: <a href="https://stotranidhi.com/en/durga-saptasati-devi-kavacham-in-english/">Stotra Nidhi — Devi Kavacham</a>.</p></footer></body></html>'''.replace('OPTIONS',options).replace('SECTIONS','\n'.join(sections)).replace('SITE_TABS', site_tabs('read'))
     comparison = '<a href="reader-view.html" id="theme-comparison">Reader View version</a>'
     (ROOT/'index.html').write_text(doc,encoding='utf-8')
     settings = '''<details id="appearance-settings" class="appearance-settings" hidden><summary>Appearance</summary><div class="appearance-panel"><fieldset><legend>Typeface</legend><label><input type="radio" name="typeface" value="serif" checked> Serif</label><label><input type="radio" name="typeface" value="sans"> Sans-serif</label></fieldset><fieldset><legend>Page color</legend><label><input type="radio" name="appearance" value="light"> Light</label><label><input type="radio" name="appearance" value="dark"> Dark</label><label><input type="radio" name="appearance" value="sepia" checked> Sepia</label></fieldset><label class="setting-row" for="reading-width">Reading width <select id="reading-width"><option value="narrow">Narrow</option><option value="normal" selected>Normal</option><option value="wide">Wide</option></select></label><label class="setting-row" for="line-spacing">Line spacing <select id="line-spacing"><option value="1.4">Compact</option><option value="1.6" selected>Normal</option><option value="1.8">Spacious</option></select></label><button type="button" id="reset-appearance">Reset appearance</button></div></details>'''
@@ -72,7 +90,7 @@ def build():
     reader_view = reader_view.replace('<div class="text-controls">','<div class="text-controls">'+settings)
     reader_view = reader_view.replace('<footer>', '<footer><p class="theme-credit">Reader View appearance adapted from <a href="https://github.com/tabreturn/tabreturn.jekyll.theme">tabreturn’s Reader-View theme</a>.</p>')
     (ROOT/'reader-view.html').write_text(reader_view,encoding='utf-8')
-    css = 'body{font-family:Georgia,"Times New Roman",serif;color:#211e18;background:#fffff8;margin:0;padding:1rem;line-height:1.65}.source-text{font:inherit;white-space:pre-wrap;tab-size:8;overflow-wrap:anywhere;margin:0}.verse{display:block;color:#211e18}.verse[data-tone="even"]{color:#694633}.verse+.verse{margin-top:.65em}.source-marker{display:none}.verse::before{content:attr(data-label);color:#a04d45;font-size:.9em;font-weight:normal;margin-right:.45em}'
+    css = 'body{font-family:Georgia,"Times New Roman",serif;color:#211e18;background:#fffff8;margin:0;padding:1rem;line-height:1.65}.source-text{font:inherit;white-space:pre-wrap;tab-size:8;overflow-wrap:anywhere;margin:0}.verse{display:block;color:#211e18}.verse[data-tone="even"]{color:#245c45}.verse+.verse{margin-top:.65em}.source-marker{display:none}.verse::before{content:attr(data-label);color:#a04d45;font-size:.78em;font-weight:normal;margin-right:.45em}'
     xhtmls = []
     for i,chunk in enumerate(chunks):
         xhtmls.append('<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><title>'+titles[i]+'</title><link rel="stylesheet" href="book.css"/></head><body><pre class="source-text">'+render_chunk(chunk)+'</pre></body></html>')
@@ -84,6 +102,7 @@ def build():
         z.writestr('META-INF/container.xml','<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>')
         for name,content in [('EPUB/package.opf',opf),('EPUB/nav.xhtml',nav),('EPUB/book.css',css)]+[(f'EPUB/page-{i}.xhtml',x) for i,x in enumerate(xhtmls)]:
             z.writestr(name,content.encode('utf-8'),compress_type=zipfile.ZIP_DEFLATED)
+    build_guides()
     verify(raw,chunks)
     print(f'Built 8 pages × 7 verses, opening, and EPUB. Source SHA-256: {digest}')
 

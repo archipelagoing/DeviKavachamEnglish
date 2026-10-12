@@ -20,8 +20,9 @@ python3 build.py --check
 ## Repository layout
 
 - `Devi_Kavacham_English_Only.txt`: source text for the website.
-- `build.py`: generates `index.html`, `reader-view.html`, and `Devi-Kavacham.epub`. Run it after editing the source.
-- `assets/`: shared reader code, styles, lotus icon, and local vendor libraries with their licenses.
+- `build.py`: generates both reader themes, `contents.html`, `about.html`, and `Devi-Kavacham.epub`. Run it after editing the source.
+- `templates/`: editable sources for the Contents and About companions.
+- `assets/`: shared reader code, styles, artwork, lotus icon, and local vendor libraries with their licenses. Artwork sources are in `assets/ARTWORK-LICENSES.md`.
 - `Devi-Kavacham-editable.docx`: separately editable master for print/export editions.
 - `export_editions.py`, `export_pdfs.mjs`, and `exports/`: DOCX export tools and generated editions.
 
