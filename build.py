@@ -45,21 +45,24 @@ def build():
     for i, chunk in enumerate(chunks):
         body = render_chunk(chunk)
         sections.append(f'<section class="reading-page" id="page-{i}" aria-labelledby="heading-{i}"><h2 id="heading-{i}" tabindex="-1">{titles[i]}</h2><pre class="source-text">{body}</pre></section>')
-    options = ''.join(f'<option value="{i}">{"Opening" if i == 0 else f"Page {i}: {title}"}</option>' for i,title in enumerate(titles))
+    options = ''.join(f'<option value="{i}">{title}</option>' for i,title in enumerate(titles))
     doc = '''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Devi Kavacham, presented in a quiet reading edition with 56 verses and an EPUB download."><title>Devi Kavacham</title><link rel="icon" href="assets/lotus.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/vendor/tufte.css"><link rel="stylesheet" href="assets/reader.css"><script src="assets/reader.js" defer></script></head>
-<body><a class="skip-link" href="#reading">Skip to text</a><header class="book-header"><h1><img class="site-logo" src="assets/lotus.svg" alt="" width="26" height="26">Devi Kavacham</h1><nav aria-label="Reading formats"><a href="Devi-Kavacham.epub" download>Download EPUB</a><a href="Devi_Kavacham_English_Only.txt" download>Original text</a><button id="epub-toggle" type="button" hidden>Read EPUB</button></nav></header>
-<main id="reading"><div class="reader-controls" id="reader-controls" hidden><div class="page-controls"><label for="page-select">Go to</label><select id="page-select">OPTIONS</select></div><div class="text-controls"><button type="button" id="smaller" aria-label="Decrease text size">A−</button><button type="button" id="larger" aria-label="Increase text size">A+</button></div></div>
+<body><a class="skip-link" href="#reading">Skip to text</a>
+<header class="book-header">
+<h1><img class="site-logo" src="assets/lotus.svg" alt="" width="26" height="26">Devi Kavacham</h1>
+<div class="reader-controls" id="reader-controls" hidden>
+<div class="page-controls"><label for="page-select">Go to verses</label><select id="page-select">OPTIONS</select></div>
+<div class="text-controls"><div class="text-size-control" role="group" aria-label="Text size"><button type="button" id="smaller" aria-label="Decrease text size">A−</button><button type="button" id="larger" aria-label="Increase text size">A+</button></div></div>
+<nav class="epub-controls" id="page-navigation" aria-label="Book navigation" hidden><button type="button" id="epub-previous" data-turn="-1" aria-label="Previous spread" title="Previous spread">‹</button><span id="book-position" aria-live="polite" aria-atomic="true">Opening</span><button type="button" id="epub-next" data-turn="1" aria-label="Next spread" title="Next spread">›</button></nav>
+</div>
+<details class="book-menu"><summary>More</summary><div class="book-menu-panel"><a href="reader-view.html" id="theme-comparison">Reader View version</a><a href="Devi-Kavacham.epub" download>Download EPUB</a><a href="Devi_Kavacham_English_Only.txt" download>Original text</a><button id="epub-toggle" type="button" hidden>Read EPUB</button></div></details>
+</header>
+<main id="reading">
 <article id="html-reader">SECTIONS</article>
-<section id="epub-reader" hidden aria-label="EPUB reader"><p id="epub-help" class="reader-help"></p><div class="epub-controls epub-controls-top" aria-label="Top page navigation"><button type="button" id="epub-previous-top" data-turn="-1" aria-label="Previous spread" title="Previous spread">‹</button><button type="button" id="epub-next-top" data-turn="1" aria-label="Next spread" title="Next spread">›</button></div><div id="epub-area" tabindex="0" role="region" aria-label="Book pages" aria-describedby="epub-help"></div><p id="epub-status" role="status" aria-live="polite"></p><div class="epub-controls"><button type="button" id="epub-previous" data-turn="-1" aria-label="Previous spread" title="Previous spread">‹</button><button type="button" id="epub-next" data-turn="1" aria-label="Next spread" title="Next spread">›</button></div></section></main>
+<section id="epub-reader" hidden aria-label="EPUB reader"><p id="epub-help" class="reader-help"></p><div id="epub-area" tabindex="0" role="region" aria-label="Book pages" aria-describedby="epub-help"></div><p id="epub-status" role="status" aria-live="polite"></p></section></main>
 <footer><p>56 verses · Eight reading pages</p><p>This edition preserves the supplied text.</p><p>Source reference: <a href="https://stotranidhi.com/en/durga-saptasati-devi-kavacham-in-english/">Stotra Nidhi — Devi Kavacham</a>.</p></footer></body></html>'''.replace('OPTIONS',options).replace('SECTIONS','\n'.join(sections))
     comparison = '<a href="reader-view.html" id="theme-comparison">Reader View version</a>'
-    doc = doc.replace('<nav aria-label="Reading formats">', '<nav aria-label="Reading formats">'+comparison)
-    controls = re.search(r'<div class="reader-controls".*?</div></div>\n', doc).group()
-    doc = doc.replace(controls, '')
-    doc = doc.replace('<nav aria-label="Reading formats">', controls + '<nav aria-label="Reading formats">')
-    links = re.search(r'(<a href="reader-view.html".*?)(<button id="epub-toggle")', doc).group(1)
-    doc = doc.replace(links, '<details class="book-menu" open><summary>More</summary><div class="book-menu-panel">' + links + '</div></details>')
     (ROOT/'index.html').write_text(doc,encoding='utf-8')
     settings = '''<details id="appearance-settings" class="appearance-settings" hidden><summary>Appearance</summary><div class="appearance-panel"><fieldset><legend>Typeface</legend><label><input type="radio" name="typeface" value="serif" checked> Serif</label><label><input type="radio" name="typeface" value="sans"> Sans-serif</label></fieldset><fieldset><legend>Page color</legend><label><input type="radio" name="appearance" value="light"> Light</label><label><input type="radio" name="appearance" value="dark"> Dark</label><label><input type="radio" name="appearance" value="sepia" checked> Sepia</label></fieldset><label class="setting-row" for="reading-width">Reading width <select id="reading-width"><option value="narrow">Narrow</option><option value="normal" selected>Normal</option><option value="wide">Wide</option></select></label><label class="setting-row" for="line-spacing">Line spacing <select id="line-spacing"><option value="1.4">Compact</option><option value="1.6" selected>Normal</option><option value="1.8">Spacious</option></select></label><button type="button" id="reset-appearance">Reset appearance</button></div></details>'''
     reader_view = doc.replace('<html lang="en">','<html lang="en" data-edition="reader-view" data-appearance="sepia" data-font="serif">')

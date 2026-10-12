@@ -21,25 +21,21 @@ button:hover:not(:disabled), summary:hover { background: var(--hover); }
 #epub-area { background: var(--paper); }
 #epub-area.facing-pages::after { background: var(--rule); }
 .appearance-settings { position: relative; }
-.appearance-settings summary { min-height: 44px; padding: .65rem; border: 1px solid var(--rule); border-radius: 2px; font-size: .95rem; cursor: pointer; }
-.appearance-panel { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 5; width: min(20rem, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--rule); background: var(--paper); box-shadow: 0 2px 8px #0002; font-family: Helvetica, Arial, sans-serif; }
+.appearance-panel { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 5; width: min(20rem, calc(100vw - 2rem)); padding: 1rem; border: 1px solid var(--control-rule); border-radius: 10px; background: var(--paper); box-shadow: 0 8px 28px #30201920; font-family: Helvetica, Arial, sans-serif; }
 .appearance-panel fieldset { margin: 0 0 1rem; padding: 0; border: 0; }
 .appearance-panel legend { font-size: .85rem; font-weight: bold; margin-bottom: .3rem; }
 .appearance-panel fieldset label { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; margin-right: .5rem; font-size: .95rem; }
 .appearance-panel input { accent-color: var(--ink); width: 1rem; height: 1rem; }
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .95rem; margin: 0 0 .75rem; }
 .theme-credit { font-size: .85rem; }
-@media (max-width: 600px) { .reader-controls { align-items: center; } .text-controls { margin-left: auto; } .appearance-panel { right: -5.8rem; } }
+@media (max-width: 899px) { .appearance-panel { right: 0; } }
 @media print { html, body { background: white; color: #211e18; } .appearance-settings { display: none; } pre.source-text { color: #211e18; } }
 
 body.book-mode { background: var(--hover); }
 .book-mode #epub-area { background: var(--paper); border-color: var(--rule); }
 
 :root[data-appearance="dark"] .verse::before { color: #df938b; }
-.book-header h1 { font-size: clamp(1.3rem, 2.2vw, 1.65rem); }
-
-:root { --header-tint: #ddd0b4; --header-base: #e8ddc5; }
-:root[data-appearance="light"] { --header-tint: #e3ddd2; --header-base: #f0f0f0; }
-:root[data-appearance="dark"] { --header-tint: #51483e; --header-base: #454545; --verse-ink: #eee; --alternate-ink: #d4b99c; --toggle-paper: #655440; --toggle-ink: #fff0d8; --toggle-border: #a08b70; }
-
-@media (min-width: 900px) { .book-header h1 { font-size: 1.35rem; } }
+/* Header tones follow the selected page palette. */
+:root { --header-tint: #f4eedf; --header-base: #eee6d5; }
+:root[data-appearance="light"] { --header-tint: #faf9f6; --header-base: #f2f1ee; }
+:root[data-appearance="dark"] { --header-tint: #3c3935; --header-base: #373532; --control-rule: #ffffff26; --verse-ink: #eee; --alternate-ink: #d4b99c; }
