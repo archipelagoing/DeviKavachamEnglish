@@ -145,3 +145,19 @@ body.book-mode { height: 100svh; overflow: hidden; background: #e9e5dc; }
  .site-tabs a { flex: 1; text-align: center; padding: .6rem; }
 }
 @media print { .site-tabs { display: none; } }
+
+/* Keep controls within narrow laptop and phone widths. */
+.book-header > *, .reader-controls > *, .text-controls { min-width: 0; }
+@media (max-width: 1100px) {
+ .book-header { flex-wrap: wrap; }
+ .book-header .reader-controls { order: 3; flex-basis: 100%; flex-wrap: wrap; justify-content: space-between; }
+ .book-menu { margin-left: auto; }
+}
+@media (max-width: 899px) {
+ body { padding: .35rem .5rem; }
+ .book-header .text-controls { margin-left: 0; }
+ .book-header button, .book-header select, .book-header summary, .site-tabs a { min-height: 44px; }
+ .text-size-control button, .book-header .epub-controls [data-turn] { width: 44px; min-height: 44px; height: 44px; }
+ .site-tabs a { display: flex; align-items: center; justify-content: center; }
+ .book-menu-panel a, .book-menu-panel button { white-space: normal; min-height: 44px; }
+}

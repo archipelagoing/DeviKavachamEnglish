@@ -4,6 +4,26 @@
 
 Reader View offers light, dark, and sepia palettes, serif/sans-serif fonts, text size, reading width, and line spacing. Preferences are stored in the reader's browser when storage is available. These settings apply to both continuous text and the embedded EPUB. The implementation uses local CSS and native HTML controls, with no Jekyll conversion or extra libraries. The original TXT, editable DOCX, and exported PDFs/EPUBs are not modified by appearance changes.
 
+Both reading themes now expose Appearance controls and share the saved palette,
+font, size, width, and spacing preferences. Contents and About also expose a
+page-color selector. The shared palette includes the EPUB document background,
+verse colors, controls, and page-turn faces; fitted EPUB pages use an explicit
+paper background rather than a transparent body over a white iframe surface.
+
+Phone controls and tabs have 44-pixel minimum heights, menus remain within the
+viewport, and the reader responds to visual-viewport height changes. When fitting
+a seven-verse page on a narrow screen would require text below 12 pixels, the
+reader switches to continuous text, explains the change, and keeps the selected
+verse or page position. Continuous text supports larger sizes and ordinary page
+scrolling. This behavior also applies on short landscape screens.
+
+On 2026-10-13, Chrome emulation checks passed at 320×568, 390×844, 844×390,
+900×700, and 1280×800 for all four public pages. Checks covered all three palettes,
+EPUB backgrounds/verse colors, layout overflow, settings bounds, and Escape focus.
+Additional checks passed for saved dark mode after reload, continuous text,
+animated turns, guide verse links, and theme switching. These checks do not
+establish Safari/Firefox, physical-device, or screen-reader conformance.
+
 The site uses the original Tufte CSS stylesheet, with a small reader stylesheet. It is static HTML, CSS, and JavaScript; no Ruby, npm, database, or theme plugins are required. The source text is never edited by the builder.
 
 ## Updating the text

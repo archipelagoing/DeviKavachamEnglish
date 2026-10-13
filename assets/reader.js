@@ -27,12 +27,12 @@
     });
   });
   const readerView = document.documentElement.dataset.edition === 'reader-view';
-  const defaults = { appearance: 'sepia', font: 'serif', width: 'normal', lineHeight: '1.6', size: 1.15 };
+  const defaults = { appearance: readerView ? 'sepia' : 'light', font: 'serif', width: 'normal', lineHeight: '1.6', size: 1.15 };
   const palettes = { light: { paper: '#ffffff', ink: '#333333', rule: '#b4b4b4' }, dark: { paper: '#333333', ink: '#eeeeee', rule: '#888888' }, sepia: { paper: '#f4ecd8', ink: '#5b4636', rule: '#bbad93' } };
   const measures = { narrow: '30rem', normal: '35rem', wide: '40rem' };
   const families = { serif: 'Georgia, "Times New Roman", serif', sans: 'Helvetica, Arial, sans-serif' };
   let preferences = { ...defaults };
-  if (readerView) {
+  {
     try {
       const saved = JSON.parse(localStorage.getItem('devi-reader-view-preferences')) || {};
       for (const [key, allowed] of Object.entries({ appearance: Object.keys(palettes), font: Object.keys(families), width: Object.keys(measures), lineHeight: ['1.4','1.6','1.8'] })) {
@@ -72,13 +72,13 @@
 
   function sizeBook() {
     if (mode !== 'epub') { area.style.removeProperty('height'); return; }
-    const available = window.innerHeight - area.getBoundingClientRect().top - 28;
+    const available = (window.visualViewport?.height || window.innerHeight) - area.getBoundingClientRect().top - 16;
     area.style.height = `${Math.max(80, available)}px`;
   }
   window.addEventListener('resize', () => { sizeBook(); scheduleFit(); });
+  window.visualViewport?.addEventListener('resize', () => { sizeBook(); scheduleFit(); });
 
   function applyAppearance(active) {
-    if (!readerView) return;
     const root = document.documentElement;
     root.dataset.appearance = preferences.appearance; root.dataset.font = preferences.font;
     root.style.setProperty('--measure', measures[preferences.width]);
@@ -91,6 +91,7 @@
     for (const reader of active ? [active] : facing.length ? facing : rendition ? [rendition] : []) {
       const palette = palettes[preferences.appearance];
       reader.themes.default({
+        html: { 'background-color': `${palette.paper} !important`, 'color-scheme': preferences.appearance === 'dark' ? 'dark' : 'light' },
         body: { 'background-color': `${palette.paper} !important`, color: `${palette.ink} !important`, 'font-family': `${families[preferences.font]} !important`, 'line-height': `${preferences.lineHeight} !important` },
         '.source-text': { 'font-family': 'inherit !important', 'line-height': `${preferences.lineHeight} !important` },
         '.verse': { color: `${preferences.appearance === 'dark' ? '#eeeeee' : '#211e18'} !important` },
@@ -185,13 +186,23 @@
         const text = doc.querySelector('pre');
         let style = doc.getElementById('fitted-page-style');
         if (!style) { style = doc.createElement('style'); style.id = 'fitted-page-style'; doc.head.append(style); }
-        style.textContent = `body{padding:0!important;background:transparent!important}.source-text{font-size:${fontSize}px!important;line-height:${readerView ? preferences.lineHeight : '1.4'}!important}.verse+.verse{border:0!important;padding:0!important;margin-top:.65em!important}`;
+        style.textContent = `html,body{background:${palettes[preferences.appearance].paper}!important}body{padding:0!important}.source-text{font-size:${fontSize}px!important;line-height:${preferences.lineHeight}!important}.verse+.verse{border:0!important;padding:0!important;margin-top:.65em!important}`;
         const rect = text.getBoundingClientRect();
         return rect.height <= panel.clientHeight - 8 && rect.width <= panel.clientWidth;
       }).every(Boolean);
     }
     let low = 1, high = max;
     for (let i = 0; i < 14; i++) { const middle = (low + high) / 2; if (fits(middle)) low = middle; else high = middle; }
+    if (innerWidth < 900 && low < 12) {
+      textMode();
+      const notice = document.getElementById('reading-notice');
+      notice.textContent = 'Showing continuous text to keep reading comfortable on this screen.';
+      notice.hidden = false;
+      const target = currentTarget?.match(/#(verse-\d+)$/)?.[1] || currentTarget?.match(/^(page-\d+)\.xhtml/)?.[1] || fromHash().target;
+      history.replaceState(null, '', `#${target}`);
+      requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ block: 'start' }));
+      return;
+    }
     fits(low);
     area.dataset.fittedSize = low.toFixed(2);
   }
@@ -382,11 +393,12 @@
     await Promise.all([...area.querySelectorAll('iframe')].map(frame => frame.contentDocument?.fonts?.ready));
     if (token === generation) {
       message.textContent = ''; fitFacing();
+      if (mode !== 'epub') return;
       const verse = target?.match(/#(verse-\d+)$/)?.[1];
       history.replaceState(null, '', verse ? `#${verse}` : `#page-${requested}`);
       if (verse) area.querySelectorAll('iframe').forEach(frame => {
         const highlighted = frame.contentDocument?.getElementById(verse);
-        if (highlighted) { highlighted.style.outline = `2px solid ${readerView && preferences.appearance === 'dark' ? '#9ed3b4' : '#245c45'}`; highlighted.style.outlineOffset = '3px'; }
+        if (highlighted) { highlighted.style.outline = `2px solid ${preferences.appearance === 'dark' ? '#9ed3b4' : '#245c45'}`; highlighted.style.outlineOffset = '3px'; }
       });
       area.querySelectorAll('.book-leaf').forEach(leaf => leaf.style.removeProperty('visibility'));
     }
@@ -397,6 +409,7 @@
   async function epubMode() {
     if (rendering) return rendering;
     mode = 'epub';
+    document.getElementById('reading-notice').hidden = true;
     toggle.textContent = 'Continuous text'; toggle.setAttribute('aria-pressed', 'true');
     rendering = (async () => {
       try {
@@ -437,13 +450,13 @@
     size = Math.max(.9, Math.min(2.2, size + amount));
     document.documentElement.style.setProperty('--reading-size', `${size}rem`);
     for (const active of facing.length ? facing : rendition ? [rendition] : []) active.themes.fontSize(`${size}rem`);
-    if (readerView) applyAppearance();
+    applyAppearance();
     scheduleFit();
   }
   document.getElementById('smaller').addEventListener('click', () => resize(-.1));
   document.getElementById('larger').addEventListener('click', () => resize(.1));
   document.getElementById('reader-controls').hidden = false;
-  if (readerView) {
+  {
     document.getElementById('appearance-settings').hidden = false;
     applyAppearance();
     document.querySelectorAll('input[name="appearance"], input[name="typeface"]').forEach(input => input.addEventListener('change', () => {

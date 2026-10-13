@@ -19,6 +19,16 @@
       } catch {}
     }));
   } else {
+    const openGuideTarget = () => {
+      let target;
+      try { target = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch { return; }
+      if (!target) return;
+      let parent = target.closest('details');
+      while (parent) { parent.open = true; parent = parent.parentElement?.closest('details'); }
+      requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+    };
+    openGuideTarget();
+    window.addEventListener('hashchange', openGuideTarget);
     document.querySelectorAll('[data-read]').forEach(link => {
       const hash = link.hasAttribute('data-resume') ? section : new URL(link.href).hash;
       link.href = `${edition}${hash}`;
@@ -28,5 +38,29 @@
       if (['light', 'dark', 'sepia'].includes(saved.appearance)) document.documentElement.dataset.appearance = saved.appearance;
       if (['serif', 'sans'].includes(saved.font)) document.documentElement.dataset.font = saved.font;
     } catch {}
+    const root = document.documentElement;
+    const settings = document.getElementById('appearance-settings');
+    const syncColors = () => document.querySelectorAll('input[name="appearance"]').forEach(input => {
+      input.checked = input.value === root.dataset.appearance;
+    });
+    if (settings) {
+      settings.hidden = false;
+      syncColors();
+      settings.addEventListener('toggle', () => {
+        if (settings.open) settings.style.setProperty('--popover-top', `${settings.getBoundingClientRect().bottom + 8}px`);
+      });
+      document.querySelectorAll('input[name="appearance"]').forEach(input => input.addEventListener('change', () => {
+        root.dataset.appearance = input.value;
+        try {
+          const saved = JSON.parse(localStorage.getItem('devi-reader-view-preferences')) || {};
+          localStorage.setItem('devi-reader-view-preferences', JSON.stringify({ ...saved, appearance: input.value }));
+        } catch {}
+        syncColors();
+      }));
+      document.addEventListener('pointerdown', event => { if (!settings.contains(event.target)) settings.open = false; });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && settings.open) { settings.open = false; settings.querySelector('summary').focus(); }
+      });
+    }
   }
 })();

@@ -8,6 +8,11 @@
   to the pending changes in `commits.md` before responding. Update an existing
   pending entry when continuing the same logical change; do not log each file
   edit separately.
+- Format every log entry like an email: a short, human-readable Subject followed
+  by a longer Body explaining the change, its purpose, and relevant verification
+  or limitations. Apply this to pending entries, actual commits, and batch
+  summaries. Preserve the exact Git subject separately when rewriting it for
+  readability; retrospective explanations are not original Git commit bodies.
 - Reconcile pending entries with actual Git history on subsequent work. Record
   each new commit once, in chronological order, with its hash, date, and actual
   subject. Pending entries do not count as commits. If several pending changes

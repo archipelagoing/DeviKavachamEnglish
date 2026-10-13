@@ -6,11 +6,13 @@ editions. `python3 build.py --check` passed on 2026-10-13: both HTML themes and
 the website EPUB preserve the complete source text, with seven verses per EPUB
 reading section. Current user priorities are explanatory tabs with relevant
 pictures, reliable dark mode, a usable mobile experience, and Google search
-discoverability using the existing GitHub Pages address without buying a domain. The user suspects
-dark mode is currently broken; this has not yet been reproduced. The next major
-gap is browser and accessibility verification;
-the current live deployment and DOCX export workflow have not been checked in
-this review.
+discoverability using the existing GitHub Pages address without buying a domain. Dark mode
+was broken: the main reader ignored saved colors, and the EPUB
+rendered light text over a white surface. Both issues are fixed locally. Chrome
+emulation checks pass across phone, landscape, and desktop layouts; physical
+devices, Safari/Firefox, and assistive technology remain unverified. Search
+metadata and a sitemap are ready. Publication and Search Console ownership
+verification/indexing remain outstanding; DOCX exports were not rerun.
 
 ## Maintenance instructions
 
@@ -42,16 +44,15 @@ this review.
 
 ## Next steps
 
-1. Reproduce the reported dark-mode problem and fix confirmed issues — section 4.
-2. Check the mobile reading journey and fix layout/touch issues — section 4.
-3. Build explanatory tabs with relevant pictures and beginner guidance; expand About and add glossary, downloads, and corrections guidance — sections 7 and 9.
-4. Verify the updated tabs, dark mode, and mobile journey on the live site — section 6.
-5. Prepare search metadata and a sitemap, then verify Google indexing through Search Console — section 8.
+1. Publish the verified reader fixes and search preparation through the existing GitHub Pages setup — sections 6 and 8.
+2. Supply the Google Search Console verification token, publish the verification tag, and submit the sitemap/request indexing — section 8 and SEARCH.md.
+3. Check the updated site on a physical phone and in Safari/Firefox — section 4.
+4. Complete screen-reader and full keyboard walkthroughs — section 4.
+5. Build explanatory tabs and beginner/resource guidance — sections 7 and 9.
 
-The implementation and committed reading artifacts are ready for review. Record
-specific environments and findings before treating the reading experience as
-verified. These next steps are a proposed verification backlog, not authorization
-to publish changes or execute unrelated work.
+The two current priorities are implemented and checked locally. Publishing and
+Google account actions remain separate steps; local verification is not evidence
+of the updated live site or Google indexing.
 
 ## 1. Define the project
 
@@ -99,12 +100,12 @@ verification. Completed implementation tasks above do not imply browser testing.
 
 ## 4. Usability, presentation, and accessibility
 
-- [ ] Reproduce the user's suspected dark-mode failure; record the affected page, reading mode, browser, and steps before diagnosing it.
-- [ ] Fix confirmed dark-mode issues across page backgrounds, text, controls, guides, embedded EPUB pages, and animated page-turn faces.
-- [ ] Verify selecting dark mode, reloading, switching reading modes, and visiting guides preserve a readable dark palette; check switching back to light and sepia.
+- [x] Reproduce the user's suspected dark-mode failure; record the affected page, reading mode, browser, and steps before diagnosing it.
+- [x] Fix confirmed dark-mode issues across page backgrounds, text, controls, guides, embedded EPUB pages, and animated page-turn faces.
+- [x] Verify selecting dark mode, reloading, switching reading modes, and visiting guides preserve a readable dark palette; check switching back to light and sepia.
 - [ ] Review both themes in current desktop browsers; confirm opening, spread pairing, page turns, text fitting, and first/last-page controls.
-- [ ] Review a narrow mobile viewport and a touch device; confirm single pages, readable verses, and appearance menus stay within the viewport.
-- [ ] Fix mobile issues found in the walkthrough; ensure header tabs, controls, images, and menus fit without unintended horizontal scrolling and remain usable by touch.
+- [ ] Review a narrow mobile viewport and a touch device; confirm single pages, readable verses, and appearance menus stay within the viewport. (Chrome touch emulation passed; physical touch device still needs verification.)
+- [x] Fix mobile issues found in the walkthrough; ensure header tabs, controls, images, and menus fit without unintended horizontal scrolling and remain usable by touch.
 - [ ] Check resizing across the 900px spread breakpoint, orientation changes, and larger text settings for clipping or lost position.
 - [ ] Follow each Contents link; confirm the correct verse opens and is highlighted in both reading modes.
 - [ ] Verify theme switching, guide navigation, and returning to Read preserve the expected section and preferences.
@@ -113,14 +114,17 @@ verification. Completed implementation tasks above do not imply browser testing.
 - [ ] Check contrast and readability in light, dark, and sepia palettes, including alternating verse colors and verse markers.
 - [ ] Verify reduced-motion behavior and continuous-text printing.
 
-Progress: Responsive controls, accessibility attributes, and reduced-motion
-handling are implemented and described in [EDITION.md](EDITION.md). Manual
-browser, touch, and assistive-technology verification was not performed in this
-review; accessibility conformance remains unclaimed.
-User report, 2026-10-13: dark mode is suspected not to work. Treat it as a
-priority investigation, not a verified defect or a completed feature. Mobile
-behavior must be checked and corrected where necessary, rather than assumed
-working from responsive CSS alone.
+Initial review: Responsive controls, accessibility attributes, and reduced-motion
+handling were present but not manually verified. Accessibility conformance
+remains unclaimed; the current browser evidence follows.
+Update, 2026-10-13: Reproduced both dark-mode problems in Chrome: main-theme
+preferences were ignored and the fitted EPUB had a white reading surface.
+Shared palettes/controls and explicit iframe backgrounds now fix both. Browser
+checks cover all four pages at 320×568, 390×844, 844×390, 900×700, and 1280×800,
+all palettes, fitting/fallback, settings bounds, Escape focus, reload, continuous
+text, animated turns, guide links, and theme switching. The mobile dark-mode
+screenshot was visually reviewed. See `scripts/check_reader.mjs`. Physical-device,
+Safari/Firefox, contrast audit, and screen-reader checks remain open.
 
 ## 5. Build and reader resilience
 
@@ -175,18 +179,23 @@ are planning suggestions, not approved final tab labels.
 
 - [ ] Check whether Google already indexes the current GitHub Pages site; record the findings without treating a missing search result alone as definitive proof of non-indexing.
 - [ ] Verify the public pages are accessible to crawlers, return successful responses, and have no unintended indexing restrictions.
-- [ ] Add or improve descriptive titles, meta descriptions, headings, and internal links for the reading page and explanatory guides, using natural wording such as “Devi Kavacham English translation.”
-- [ ] Set canonical URLs using the existing GitHub Pages address; identify the preferred reading URL for the two themes and avoid duplicate print-export pages competing with it.
-- [ ] Generate a sitemap of preferred public page URLs through the build process and verify it works under the repository's project-site path.
+- [x] Add or improve descriptive titles, meta descriptions, headings, and internal links for the reading page and explanatory guides, using natural wording such as “Devi Kavacham English translation.”
+- [x] Set canonical URLs using the existing GitHub Pages address; identify the preferred reading URL for the two themes and avoid duplicate print-export pages competing with it.
+- [x] Generate a sitemap of preferred public page URLs through the build process and verify it works under the repository's project-site path.
 - [ ] Set up a Google Search Console URL-prefix property for `https://archipelagoing.github.io/DeviKavachamEnglish/`; complete ownership verification with the user's account and the verification file or tag Google supplies.
 - [ ] Once changes are live, submit the sitemap and inspect/request indexing for the main reading page and important guides through Search Console.
 - [ ] Recheck indexing after Google processes the site; record reported exclusions and fix actionable issues. Treat indexing and ranking as separate outcomes.
 
 Progress: Requested by the user on 2026-10-13. Keep the existing free GitHub
 Pages URL; purchasing a domain or paying for advertising is outside this goal.
-Search preparation and actual indexing have not yet been assessed. Search Console
-account actions require the user's access; no verification token is available
-in this review. Eligibility and indexing requests do not guarantee inclusion,
+Search preparation is implemented and checked locally. `python3 build.py --check`
+now verifies metadata and the sitemap as well as source preservation. Chrome
+checks verify public pages under the project-site path. Temporary-output checks
+passed for verification-token insertion and invalid-token rejection. The current
+live homepage returned HTTP 200, with no robots meta/header; host-root robots.txt
+returned 404. A search returned no results, which is not definitive indexing
+evidence. Search Console account actions require the user's access; no real
+verification token has been supplied. See [SEARCH.md](SEARCH.md). Eligibility and indexing requests do not guarantee inclusion,
 timing, or ranking. Follow Google's [SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide)
 and [URL Inspection guidance](https://support.google.com/webmasters/answer/9012289)
 when implementing and verifying this work.
@@ -231,16 +240,22 @@ was explicitly declined and is excluded from the backlog.
 
 - [x] Create `commits.md` with relevant proposed messages for uncommitted changes and the existing Git commit history.
 - [x] Add repository instructions in `AGENTS.md` to maintain the checklist and change log after meaningful authorized changes.
+- [x] Format each change-log entry with a short, natural subject and a longer email-style body, preserving actual Git subjects in historical entries.
 - [ ] Add the first 15-commit batch summary once actual Git history reaches commit 15; continue at each subsequent multiple of 15.
 
-Progress: Created on 2026-10-13. The local history contains 13 commits; pending
+Progress: Created on 2026-10-13. The local history now contains 14 commits; pending
 changes are listed separately and do not count toward batch summaries. No
 commit or push was performed during setup. Maintenance is instructed through
 `AGENTS.md`; no automatic Git hook was installed.
+On 2026-10-13, reformatted pending changes and the original 13 historical commits into
+subject/body entries at the user's request, and updated the maintenance rules.
+Historical descriptions are based on Git subjects and changed-file records;
+they do not assert new runtime verification. Commit `1da918e` was subsequently
+reconciled as commit 14, covering the original backlog and log setup.
 
 ## Blockers and decisions
 
-- **Blocker:** None observed for local source verification. Browser, external-reader, PDF-export, and live-site checks remain unassessed rather than confirmed blocked.
+- **Dependency:** Search Console ownership verification needs the user’s Google account and verification token. Updated live-site checks need publication first. Physical-device, other-browser, external-reader, and PDF-export checks remain pending.
 - **Open question:** No explicit browser/device support target is recorded; document the environments actually tested when completing section 4.
 - **Existing decision:** Preserve the supplied website TXT exactly; keep DOCX edits and their exported editions independent until deliberately integrated (see EDITION.md and EDITING.md).
 - **User priorities, 2026-10-13:** Add top tabs explaining the most important contents themes with relevant pictures; investigate and fix dark mode; verify and improve mobile behavior. These are active priorities rather than optional stretch goals.
