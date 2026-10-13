@@ -93,7 +93,7 @@
       reader.themes.default({
         html: { 'background-color': `${palette.paper} !important`, 'color-scheme': preferences.appearance === 'dark' ? 'dark' : 'light' },
         body: { 'background-color': `${palette.paper} !important`, color: `${palette.ink} !important`, 'font-family': `${families[preferences.font]} !important`, 'line-height': `${preferences.lineHeight} !important` },
-        '.source-text': { 'font-family': 'inherit !important', 'line-height': `${preferences.lineHeight} !important` },
+        '.source-text': { 'background-color': `${palette.paper} !important`, color: `${palette.ink} !important`, 'font-family': 'inherit !important', 'line-height': `${preferences.lineHeight} !important` },
         '.verse': { color: `${preferences.appearance === 'dark' ? '#eeeeee' : '#211e18'} !important` },
         '.verse[data-tone="even"]': { color: `${preferences.appearance === 'dark' ? '#9ed3b4' : '#245c45'} !important` },
         '.verse::before': { color: `${preferences.appearance === 'dark' ? '#df938b' : '#a04d45'} !important` }
@@ -186,7 +186,7 @@
         const text = doc.querySelector('pre');
         let style = doc.getElementById('fitted-page-style');
         if (!style) { style = doc.createElement('style'); style.id = 'fitted-page-style'; doc.head.append(style); }
-        style.textContent = `html,body{background:${palettes[preferences.appearance].paper}!important}body{padding:0!important}.source-text{font-size:${fontSize}px!important;line-height:${preferences.lineHeight}!important}.verse+.verse{border:0!important;padding:0!important;margin-top:.65em!important}`;
+        style.textContent = `html,body,.source-text{background:${palettes[preferences.appearance].paper}!important}body{padding:0!important}.source-text{color:${palettes[preferences.appearance].ink}!important;font-size:${fontSize}px!important;line-height:${preferences.lineHeight}!important}.verse+.verse{border:0!important;padding:0!important;margin-top:.65em!important}`;
         const rect = text.getBoundingClientRect();
         return rect.height <= panel.clientHeight - 8 && rect.width <= panel.clientWidth;
       }).every(Boolean);

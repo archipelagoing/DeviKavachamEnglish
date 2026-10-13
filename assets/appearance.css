@@ -35,5 +35,12 @@ body.book-mode { background: var(--hover); }
 #reading-notice { max-width: var(--measure, 43rem); margin: 1rem auto; color: var(--muted); font: .9rem/1.5 Helvetica, Arial, sans-serif; }
 /* Header tones follow the selected page palette. */
 :root { --header-tint: #f4eedf; --header-base: #eee6d5; }
+:root { --fold-shadow: #3e2c182b; --fold-line: #3e2c1866; --fold-light: #fffdf580; }
 :root[data-appearance="light"] { --header-tint: #faf9f6; --header-base: #f2f1ee; }
 :root[data-appearance="dark"] { --header-tint: #3c3935; --header-base: #373532; --control-rule: #ffffff26; --verse-ink: #eee; --alternate-ink: #9ed3b4; }
+:root[data-appearance="dark"] { --fold-shadow: #00000070; --fold-line: #111111d9; --fold-light: #ffffff26; }
+.book-mode #epub-area.book-spread.facing-pages::after {
+ width: clamp(1.25rem, 3vw, 2.5rem);
+ z-index: 2;
+ background: linear-gradient(90deg, transparent, var(--fold-shadow) 35%, var(--fold-line) 49%, var(--fold-light) 51%, var(--fold-shadow) 65%, transparent);
+}

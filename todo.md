@@ -11,7 +11,8 @@ was broken: the main reader ignored saved colors, and the EPUB
 rendered light text over a white surface. Both issues are fixed locally. Chrome
 emulation checks pass across phone, landscape, and desktop layouts; physical
 devices, Safari/Firefox, and assistive technology remain unverified. Search
-metadata and a sitemap are ready. Publication and Search Console ownership
+metadata and a sitemap are ready. Contents now has eleven expandable explanations
+and nine illustrated Navadurga stories with Wikipedia and source-linked verse links. Publication and Search Console ownership
 verification/indexing remain outstanding; DOCX exports were not rerun.
 
 ## Maintenance instructions
@@ -92,8 +93,9 @@ generation are documented but were not exercised during this review.
 - [ ] Open the website EPUB and DOCX-derived EPUBs in an external reader and check navigation and reflow.
 
 Progress: Implementation is present in [build.py](build.py), [assets/reader.js](assets/reader.js),
-the shared styles, and [templates/](templates/). The latest feature commit is
-`f633aea` (2026-10-12): guides, artwork, and forest-green verse styling.
+the shared styles, and [templates/](templates/). The initial guide/artwork work landed in `f633aea` (2026-10-12). Reader fixes,
+search preparation, and illustrated expandable guides are now recorded in
+`c63e954` (2026-10-13), with final guide copy/layout refinements still pending.
 The source-preservation check passed on 2026-10-13. Export artifacts exist in
 [exports/](exports/); their presence does not establish current export or visual
 verification. Completed implementation tasks above do not imply browser testing.
@@ -103,6 +105,8 @@ verification. Completed implementation tasks above do not imply browser testing.
 - [x] Reproduce the user's suspected dark-mode failure; record the affected page, reading mode, browser, and steps before diagnosing it.
 - [x] Fix confirmed dark-mode issues across page backgrounds, text, controls, guides, embedded EPUB pages, and animated page-turn faces.
 - [x] Verify selecting dark mode, reloading, switching reading modes, and visiting guides preserve a readable dark palette; check switching back to light and sepia.
+- [x] Give EPUB text panels an explicit palette background and restore a visible center crease in dark mode; visually review desktop spreads in both themes.
+- [x] Version generated CSS/JavaScript URLs by file content so changed assets use fresh browser cache entries after publication/reload.
 - [ ] Review both themes in current desktop browsers; confirm opening, spread pairing, page turns, text fitting, and first/last-page controls.
 - [ ] Review a narrow mobile viewport and a touch device; confirm single pages, readable verses, and appearance menus stay within the viewport. (Chrome touch emulation passed; physical touch device still needs verification.)
 - [x] Fix mobile issues found in the walkthrough; ensure header tabs, controls, images, and menus fit without unintended horizontal scrolling and remain usable by touch.
@@ -125,6 +129,14 @@ all palettes, fitting/fallback, settings bounds, Escape focus, reload, continuou
 text, animated turns, guide links, and theme switching. The mobile dark-mode
 screenshot was visually reviewed. See `scripts/check_reader.mjs`. Physical-device,
 Safari/Firefox, contrast audit, and screen-reader checks remain open.
+Follow-up, 2026-10-13: The user showed pale text on white panels and a barely
+visible fold. A fresh Chrome load of the current live pages had dark HTML/body
+surfaces, while the fold's low-opacity brown shading was still too faint. The
+screenshot's white-panel state was not reproduced on that fresh load; its exact
+browser/cache state is unverified. Explicit text-panel backgrounds, a stronger
+palette-aware fold, and content-versioned assets now pass local desktop-spread
+checks (`--spread`) and the full reader suite. The 1440×900 dark spread was
+visually reviewed. These follow-up changes remain unpublished by this agent.
 
 ## 5. Build and reader resilience
 
@@ -136,9 +148,10 @@ Safari/Firefox, contrast audit, and screen-reader checks remain open.
 - [ ] Check rapid navigation and resize/appearance changes during a page turn for overlapping turns, blank pages, or stale position.
 - [ ] Resolve findings from sections 4–5 and recheck each affected behavior before closing its verification task.
 
-Progress: The completed check validates HTML/EPUB text and EPUB structure, not
-reader interactions, guide rendering, full regeneration, or error handling.
-No runtime failure has been established by this repository review.
+Progress: Source checks validate text, EPUB structure, metadata, and sitemap.
+The Chrome checks now cover the reader interactions and expanded guides described
+in sections 4 and 7. Dark-mode failures were reproduced and fixed. General
+failure/storage scenarios listed above remain separate, unfinished checks.
 
 ## 6. Delivery and documentation
 
@@ -156,12 +169,14 @@ Progress: The local `main` branch matched its recorded `origin/main` at review
 time, before adding this checklist; no remote fetch or deployment check was
 performed. The README's site URL is a documented destination, not proof that
 the current revision is live. Publishing changes requires a separate authorized
-task.
+task. Latest local status on 2026-10-13 matches the recorded `origin/main` at
+`c63e954`; no live check of that newly recorded commit has been performed.
+Final guide refinements and log/checklist updates remain uncommitted.
 
 ## 7. Explanatory tabs and relevant pictures
 
 - [ ] Select the most important contents themes to explain and define a concise set of top navigation tabs, building on the existing Read, Contents, and About navigation.
-- [ ] Write clear explanations for each selected theme with links to the relevant verses; keep the explanations separate from the preserved hymn.
+- [x] Write clear explanations for each selected theme with links to the relevant verses; keep the explanations separate from the preserved hymn.
 - [ ] Implement the explanatory views in editable templates and the shared generated navigation so rebuilding retains them.
 - [ ] Add pictures relevant to each explanation; record source, reuse rights, captions, and useful alt text, and size assets for mobile loading.
 - [ ] Verify each new tab and verse link works, indicates the current view, and supports keyboard navigation and direct links.
@@ -170,10 +185,25 @@ task.
 Progress: Requested by the user on 2026-10-13. Existing Contents and About pages
 already provide thematic summaries and two Durga artworks; the requested work
 extends those companions with more prominent explanations and relevant imagery.
-New tab labels, explanatory content, and image choices have not yet been
-implemented. Candidate themes from the current Contents guide include the nine
-forms of Durgā, the Mothers, and protection of directions/body/inner life; these
-are planning suggestions, not approved final tab labels.
+Update, 2026-10-13: The user requested expansion of the existing Contents rows.
+All eleven themes now expand in place with conversational explanations and a
+separate Read link. The Navadurga section includes nine locally hosted images,
+reviewed stories, Wikipedia links, and exact verse links. Future top-level tabs
+remain open; the new work builds on the existing Contents navigation.
+
+- [x] Make all eleven Contents themes expandable while retaining direct verse links and no-JavaScript use.
+- [x] Add a photograph, short story, Wikipedia link, and verse link for each of the nine Navadurga forms.
+- [x] Record image sources, author/license credits, alt text, dimensions, and lazy loading for the new cards.
+- [x] Use Unicode normalization and dictionary-based entity linking to map names/aliases to the unchanged source verses; distinguish Kūṣmāṇḍā from similarly named spirits.
+- [x] Verify expanded themes, nine images, credits, keyboard controls, direct deity fragments, and both reader destinations in Chrome at 320, 390, 900, and 1280 pixels, in dark/sepia palettes and with JavaScript disabled.
+
+Evidence: `node scripts/check_reader.mjs --contents` passes with no uncaught
+browser errors. Three `unittest` checks verify introductory verses, spelling
+variants, and false-positive avoidance. Mobile and desktop screenshots were
+reviewed; the full source still passes `python3 build.py --check`. Image credits
+are in `assets/ARTWORK-LICENSES.md` and `assets/navadurga/media.json`. Stories and
+aliases are editable in `content/navadurga.json`. These are local checks, not
+live publication or physical-device/screen-reader verification.
 
 ## 8. Google search discoverability without a paid domain
 
@@ -241,9 +271,10 @@ was explicitly declined and is excluded from the backlog.
 - [x] Create `commits.md` with relevant proposed messages for uncommitted changes and the existing Git commit history.
 - [x] Add repository instructions in `AGENTS.md` to maintain the checklist and change log after meaningful authorized changes.
 - [x] Format each change-log entry with a short, natural subject and a longer email-style body, preserving actual Git subjects in historical entries.
-- [ ] Add the first 15-commit batch summary once actual Git history reaches commit 15; continue at each subsequent multiple of 15.
+- [x] Add the first 15-commit batch summary covering commits 1–15.
+- [ ] Add the next summary when actual Git history reaches commit 30, covering commits 16–30.
 
-Progress: Created on 2026-10-13. The local history now contains 14 commits; pending
+Progress: Created on 2026-10-13. The local history now contains 15 commits; pending
 changes are listed separately and do not count toward batch summaries. No
 commit or push was performed during setup. Maintenance is instructed through
 `AGENTS.md`; no automatic Git hook was installed.
@@ -251,7 +282,10 @@ On 2026-10-13, reformatted pending changes and the original 13 historical commit
 subject/body entries at the user's request, and updated the maintenance rules.
 Historical descriptions are based on Git subjects and changed-file records;
 they do not assert new runtime verification. Commit `1da918e` was subsequently
-reconciled as commit 14, covering the original backlog and log setup.
+reconciled as commit 14, covering the original backlog and log setup. Commit
+`c63e954` then combined the reader/search fixes and illustrated guide work as
+commit 15; the first batch summary is now recorded. Final guide copy/layout and
+maintenance refinements remain uncommitted.
 
 ## Blockers and decisions
 
@@ -262,4 +296,5 @@ reconciled as commit 14, covering the original backlog and log setup.
 - **User constraint, 2026-10-13:** Make the site discoverable in Google using its existing GitHub Pages URL, without purchasing a domain.
 - **User additions, 2026-10-13:** Add Start here guidance, a linked glossary, source/editorial transparency through the existing About page, clear download choices, and a corrections route.
 - **User additions, 2026-10-13:** Add resource search, persistent bookmarks, verse sharing, and offline reading. Audio is explicitly excluded.
+- **Guide decision, 2026-10-13:** Expand existing Contents themes and illustrate all nine Navadurga forms with source-linked stories. Use practical name-to-verse entity linking; keep reviewed copy in the repository instead of generating unreviewed stories live.
 - **Maintenance:** This is the authoritative project checklist. `AGENTS.md` now instructs future repository work to update it and `commits.md`; summarize each batch of 15 actual commits.

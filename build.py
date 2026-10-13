@@ -13,6 +13,13 @@ ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / 'Devi_Kavacham_English_Only.txt'
 SITE_URL = 'https://archipelagoing.github.io/DeviKavachamEnglish/'
 
+def version_assets(document):
+    """Refresh changed reader assets without reusing stale browser cache entries."""
+    def replace(match):
+        digest = hashlib.sha256((ROOT / match[2]).read_bytes()).hexdigest()[:12]
+        return f'{match[1]}="{match[2]}?v={digest}"'
+    return re.sub(r'(src|href)="(assets/[^"?]+\.(?:css|js))"', replace, document)
+
 def search_metadata(page=''):
     """Keep canonical URLs and the sitemap on the free project-site address."""
     verification = ROOT / 'search-console-verification.txt'
@@ -72,7 +79,7 @@ def build_guides():
         document = f'''<!doctype html>
 <html lang="en" data-edition="reader-view" data-appearance="sepia" data-font="serif"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="{description}"><title>{title}</title>{search_metadata(name + '.html')}<link rel="icon" href="assets/lotus.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/reader.css"><link rel="stylesheet" href="assets/appearance.css"><link rel="stylesheet" href="assets/reader-view.css"><link rel="stylesheet" href="assets/guide.css"><script src="assets/site.js" defer></script></head>
 <body class="guide-page"><a class="skip-link" href="#guide">Skip to content</a><header class="book-header"><a class="site-title" data-read data-resume href="index.html"><img class="site-logo" src="assets/lotus.svg" alt="" width="24" height="24">Devi Kavacham</a>{site_tabs(name)}{appearance_settings(False)}</header><main id="guide" class="guide-main">{content}</main><footer class="guide-footer"><p>Devi Kavacham · An English reading edition</p><a data-read data-resume href="index.html">Return to reading</a></footer></body></html>'''
-        (ROOT / f'{name}.html').write_text(document, encoding='utf-8')
+        (ROOT / f'{name}.html').write_text(version_assets(document), encoding='utf-8')
 
 def build():
     raw = SOURCE.read_bytes()
@@ -112,14 +119,14 @@ SITE_TABS
     doc = doc.replace('<script src="assets/site.js" defer>', '<link rel="stylesheet" href="assets/appearance.css"><script src="assets/site.js" defer>')
     doc = doc.replace('<div class="text-controls">', '<div class="text-controls">' + appearance_settings())
     comparison = '<a href="reader-view.html" id="theme-comparison">Reader View version</a>'
-    (ROOT/'index.html').write_text(doc,encoding='utf-8')
+    (ROOT/'index.html').write_text(version_assets(doc),encoding='utf-8')
     reader_view = doc.replace('<html lang="en">','<html lang="en" data-edition="reader-view" data-appearance="sepia" data-font="serif">')
     reader_view = reader_view.replace('<link rel="stylesheet" href="assets/vendor/tufte.css">','')
     reader_view = reader_view.replace('<script src="assets/reader.js" defer>', '<link rel="stylesheet" href="assets/reader-view.css"><script src="assets/reader.js" defer>')
     reader_view = reader_view.replace(comparison,'<a href="index.html" id="theme-comparison">Tufte version</a>')
     reader_view = reader_view.replace('Devi Kavacham English Translation · Read &amp; Download', 'Devi Kavacham English Translation · Reader View')
     reader_view = reader_view.replace('<footer>', '<footer><p class="theme-credit">Reader View appearance adapted from <a href="https://github.com/tabreturn/tabreturn.jekyll.theme">tabreturn’s Reader-View theme</a>.</p>')
-    (ROOT/'reader-view.html').write_text(reader_view,encoding='utf-8')
+    (ROOT/'reader-view.html').write_text(version_assets(reader_view),encoding='utf-8')
     css = 'body{font-family:Georgia,"Times New Roman",serif;color:#211e18;background:#fffff8;margin:0;padding:1rem;line-height:1.65}.source-text{font:inherit;white-space:pre-wrap;tab-size:8;overflow-wrap:anywhere;margin:0}.verse{display:block;color:#211e18}.verse[data-tone="even"]{color:#245c45}.verse+.verse{margin-top:.65em}.source-marker{display:none}.verse::before{content:attr(data-label);color:#a04d45;font-size:.78em;font-weight:normal;margin-right:.45em}'
     xhtmls = []
     for i,chunk in enumerate(chunks):

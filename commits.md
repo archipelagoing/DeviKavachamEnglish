@@ -34,49 +34,43 @@ automatic Git hook, and it does not authorize commits or pushes.
 
 ### 2026-10-13 — Pending
 
-**Subject:** Give each change a readable subject and explanation
+**Subject:** Polish the guide’s wording and phone layout
 
-**Body:** Convert the original log table into email-style subjects and fuller
-explanations while preserving the actual Git subjects, dates, and hashes. Apply
-this format to future changes and batch summaries through the repository
-instructions. Reconcile the checklist/log setup with actual commit `1da918e`,
-which combined the initial pending documentation work into commit 14.
+**Body:** Put each deity’s name above its photograph so the identity is clear
+before a phone reader reaches the story. Make image credits more readable and
+rewrite the theme teasers in a direct, conversational voice. Document the new
+content sources, entity-linking behavior, and verification commands.
 
-### 2026-10-13 — Pending
+Update the checklist with the completed expansions and record the new commit
+`c63e954` as commit 15, including the first batch summary. The previously pending
+reader fixes, search preparation, log-format update, and initial illustrated
+guide landed together in that commit. These final copy/layout/documentation
+refinements remain uncommitted; this agent did not commit or push them.
 
-**Subject:** Make dark mode and phone reading work across the site
-
-**Body:** Fix two reproduced problems: the main reader ignored saved appearance
-preferences, and fitted EPUB pages showed pale text over a white reading surface.
-Share appearance controls and palettes across both reading themes and the guides,
-apply the selected palette to EPUB backgrounds and page-turn faces, and preserve
-settings during reloads and navigation.
-
-Keep phone controls at least 44 pixels tall, keep menus inside the viewport, and
-fit the book to the visual viewport. Switch to continuous text when fitting a
-mobile page would require text below 12 pixels, keeping the selected position.
-Chrome emulation checks cover four public pages at five viewport sizes, all
-three palettes, navigation, settings, saved colors, continuous text, and animated
-turns; a mobile dark screenshot was visually reviewed. Physical phones, other
-browsers, and assistive technology remain separate verification tasks.
+Chrome guide checks pass at four viewport widths, including all nine images,
+credits, native expansion, dark/sepia layouts, direct fragments, and exact verse
+links in both readers. Three entity-linking tests and the source-preservation
+check pass. Phone and desktop screenshots were reviewed.
 
 ### 2026-10-13 — Pending
 
-**Subject:** Prepare the free site for Google search
+**Subject:** Keep dark pages readable and bring back the fold
 
-**Body:** Add descriptive titles, canonical URLs, and a generated sitemap for
-the existing GitHub Pages address. Keep the original reading text available in
-HTML and mark print-only HTML exports as noindex. Add rebuild-safe support for a
-Search Console verification token and document the account-side setup in SEARCH.md.
+**Body:** Respond to the white-panel and missing-crease screenshot by applying
+explicit paper colors to EPUB text panels as well as HTML/body. Strengthen the
+center fold with palette-aware shadow and highlight colors so it remains visible
+on dark pages. Version generated stylesheet/script URLs by content hash so a
+reload after publication requests the updated assets.
 
-Source preservation and metadata checks pass, and temporary-output checks verify
-token insertion and invalid-token rejection. The existing live homepage returns
-HTTP 200, without robots indexing restrictions in its HTML or headers; the
-host-root robots file returns 404. The updated files have not been published,
-and Search Console verification, sitemap submission, and Google indexing remain
-pending. No paid domain, Git commit, or push is part of this local change.
+A fresh live Chrome load already had dark HTML/body backgrounds, so the precise
+cause of the screenshot’s white panels remains unverified. The old fold was too
+faint. The corrected local desktop spread was visually reviewed; both reader
+themes pass explicit text-surface, fold, and asset-version checks. The full
+phone/desktop/palette/navigation suite and source-preservation check also pass.
+These changes are local; no commit or push was performed by this agent.
 
 ## Commit history
+
 
 Historical entries below come from local Git history inspected on 2026-10-13.
 Git subjects and changed-file records were reviewed to write the explanations
@@ -226,9 +220,52 @@ not implement the requested reader features.
 
 **Git subject:** added a maintainable commit log that should add summaries every 15 commits.
 
+### 15 · 2026-10-13 · `c63e954`
+
+**Subject:** Fix the reader and make Contents a richer guide
+
+**Body:** Add shared appearance controls, correct the white EPUB surface in dark
+mode, improve phone menus and controls, and switch to continuous text when a
+mobile book page would require tiny type. Prepare the free GitHub Pages site
+for Google with search metadata, canonical URLs, a sitemap, and rebuild-safe
+Search Console verification support.
+
+Expand all eleven Contents themes and add nine credited photographs, short
+Navadurga stories, Wikipedia links, and automatically matched verse links.
+Include entity-linking tests and Chrome regression checks. This commit also
+adopts the email-style log format and records earlier checklist updates. Later
+copy/layout refinements are tracked separately as pending work.
+
+**Git subject:** expanded a it on the contents page, attempt to link relevant pictures and wikipedia articles
+
 ## Batch summaries
 
-No complete batch yet: 14 actual commits are recorded. The first summary is due
-after commit 15 and will cover commits 1–15. Pending changes above do not advance
-this count.
+### Commits 1–15 · 2026-10-09 to 2026-10-13
 
+**Subject:** From a text file to an illustrated reading resource
+
+**Body:** The first batch establishes the Durga Puja edition, adds its source
+reference and supplied text, and builds a static reading website with an EPUB
+viewer. It then adds Reader View, appearance settings, an editable Word master,
+and seven/eight-page print and EPUB exports. Reader refactors improve layout,
+controls, and page navigation, with a lotus identity and two-sided book turns.
+
+Contents and About provide context alongside the hymn, with Durga artwork and
+alternating verse colors. The batch closes with fixes for the main reader’s
+dark-mode preference handling and the EPUB’s white surface, improved mobile
+controls and readability, eleven expandable explanations, and nine illustrated
+Navadurga stories. Name normalization and entity linking connect those stories
+to the actual verses without changing the source. Search metadata, canonical
+URLs, and a generated sitemap prepare the existing free site for Google.
+
+The repository now includes a maintained checklist, this subject/body change
+log, and repeatable source/browser/entity-linking checks. Local development
+checks passed for source preservation, metadata, dark/mobile behavior, native
+expansion, and source-linked cards. Physical devices, other browsers,
+assistive technology, and current DOCX export verification remain open. Google
+Search Console verification and indexing still need account-side evidence;
+local tests do not establish deployment or search ranking. Final copy and card
+layout refinements made after commit 15 remain in Pending changes.
+
+**Range:** `f4dba54` → `c63e954` (15 actual commits; pending changes excluded).
+The next batch summary is due after commit 30 and will cover commits 16–30.

@@ -80,3 +80,10 @@ identified where relevant, and the hymn itself remains unchanged.
 Public-domain Durga imagery from The Met and the Smithsonian is hosted locally, with captions and links to collection records and rights statements. See `assets/ARTWORK-LICENSES.md`.
 
 In book mode the selector describes the whole visible spread (for example, Pages 5–6), or an individual page on small screens. Continuous text uses verse ranges. The position label remains available to assistive technology. The burgundy cover edge and center-fold shading are softened to give the text more visual space.
+
+The EPUB text panel now has its own explicit palette background, and the desktop
+crease uses palette-aware shadow/highlight colors to remain visible in dark
+mode. Generated stylesheet/script links carry a content hash so changed assets
+receive a fresh cache key on the next page reload after publication. Run
+`node scripts/check_reader.mjs --spread` to check and capture both desktop dark
+spreads; `--spread --live` inspects the currently published version separately.

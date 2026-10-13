@@ -21,7 +21,7 @@ const server = http.createServer(async (req, res) => {
   } catch { res.writeHead(404).end(); }
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const base = `http://127.0.0.1:${server.address().port}${prefix}`;
+const base = process.argv.includes('--live') ? 'https://archipelagoing.github.io/DeviKavachamEnglish/' : `http://127.0.0.1:${server.address().port}${prefix}`;
 const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'devi-reader-check-'));
 const executable = process.env.DEVI_CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const browser = spawn(executable, ['--headless', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check', '--disable-background-networking', 'about:blank'], { stdio: 'ignore' });
@@ -80,7 +80,27 @@ try {
       control:!!document.querySelector('#appearance-settings'),
       verses:frames.map(f => ({ink:css(f.contentDocument.querySelector('.verse'))?.color, tone:f.contentDocument.querySelector('.verse')?.dataset.tone, background:css(f.contentDocument.body)?.backgroundColor})) };
   })()`;
-  if (process.argv.includes('--inspect')) {
+  if (process.argv.includes('--spread')) {
+    await call('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+    for (const edition of ['index.html', 'reader-view.html']) {
+      await navigate(`${edition}#page-1`);
+      const state = await evaluate(`(() => {
+        const area=document.querySelector('#epub-area');
+        return {fold:getComputedStyle(area,'::after').backgroundImage,frames:[...area.querySelectorAll('iframe')].map(f=>{
+          const d=f.contentDocument,p=d.querySelector('pre');
+          return {html:getComputedStyle(d.documentElement).backgroundColor,body:getComputedStyle(d.body).backgroundColor,pre:getComputedStyle(p).backgroundColor,iframe:getComputedStyle(f).backgroundColor,ink:getComputedStyle(p.querySelector('.verse')).color};
+        })};
+      })()`);
+      console.log(JSON.stringify({edition,...state}));
+      if (!process.argv.includes('--live')) {
+        assert(state.fold.includes('linear-gradient') && state.fold.includes('0.85'), 'dark fold has a visible central shadow');
+        assert(state.frames.every(f=>f.html==='rgb(51, 51, 51)' && f.body==='rgb(51, 51, 51)' && f.pre==='rgb(51, 51, 51)'), 'all rendered text surfaces are explicitly dark');
+        assert(await evaluate(`document.querySelector('script[src*="reader.js"]').src.includes('?v=') && document.querySelector('link[href*="appearance.css"]').href.includes('?v=')`), 'changed reader assets have versioned URLs');
+      }
+      const shot=await call('Page.captureScreenshot',{format:'png'});
+      await fs.writeFile(`/private/tmp/devi-spread-${edition}.png`,Buffer.from(shot.data,'base64'));
+    }
+  } else if (process.argv.includes('--inspect')) {
     await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     await call('Emulation.setTouchEmulationEnabled', { enabled: true });
     for (const page of ['index.html#verse-21', 'reader-view.html#verse-21', 'contents.html', 'about.html']) { await navigate(page); console.log(JSON.stringify(await evaluate(snapshot))); }
