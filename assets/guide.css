@@ -30,9 +30,10 @@
 .navadurga-cards { display: grid; gap: 1.5rem; margin: 1.5rem 0; }
 .deity-card { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 1.2rem; padding: 1.2rem 0; border-top: 1px solid var(--control-rule); scroll-margin-top: 1rem; }
 .deity-card > * { min-width: 0; }
+.deity-heading { grid-column: 1 / -1; }
 .deity-card figure { margin: 0; }
 .deity-card img { display: block; width: 100%; height: auto; border-radius: 5px; }
-.deity-card figcaption { margin-top: .5rem; color: var(--muted); font: .65rem/1.6 Helvetica, Arial, sans-serif; overflow-wrap: anywhere; }
+.deity-card figcaption { margin-top: .5rem; color: var(--muted); font: .75rem/1.6 Helvetica, Arial, sans-serif; overflow-wrap: anywhere; }
 .deity-card h3 { margin: .3rem 0 .25rem; font-weight: normal; font-size: 1.4rem; line-height: 1.25; }
 .contents-list .deity-number { color: var(--alternate-ink); font: .65rem/1.5 Helvetica, Arial, sans-serif; letter-spacing: .12em; }
 .contents-list .deity-meaning { margin-bottom: .8rem; font-size: .85rem; font-style: italic; }

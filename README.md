@@ -21,6 +21,8 @@ For Chrome browser regression checks (Node.js 22+ and installed Chrome):
 
 ```sh
 node scripts/check_reader.mjs
+node scripts/check_reader.mjs --contents
+python3 -m unittest discover -s tests -v
 ```
 
 The check starts a disposable local server and Chrome profile, tests phone,
@@ -34,6 +36,8 @@ remain separate from Chrome emulation.
 - `Devi_Kavacham_English_Only.txt`: source text for the website.
 - `build.py`: generates both reader themes, `contents.html`, `about.html`, `sitemap.xml`, and `Devi-Kavacham.epub`. Run it after editing the source.
 - `templates/`: editable sources for the Contents and About companions.
+- `content/navadurga.json`: reviewed stories, names, aliases, and Wikipedia links for the nine forms.
+- `guide_content.py`: matches deity names to source verses and generates the illustrated cards without a network connection.
 - `assets/`: shared reader code, styles, artwork, lotus icon, and local vendor libraries with their licenses. Artwork sources are in `assets/ARTWORK-LICENSES.md`.
 - `Devi-Kavacham-editable.docx`: separately editable master for print/export editions.
 - `export_editions.py`, `export_pdfs.mjs`, and `exports/`: DOCX export tools and generated editions.

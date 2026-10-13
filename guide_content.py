@@ -48,7 +48,8 @@ def render_navadurga(root, source):
         e = {key: html.escape(str(value), quote=True) for key, value in entity.items() if isinstance(value, str)}
         m = {key: html.escape(str(value), quote=True) for key, value in image.items()}
         cards.append(f'''<article class="deity-card" id="{e['id']}" aria-labelledby="name-{e['id']}">
+<header class="deity-heading"><p class="deity-number">{order:02d} / 09</p><h3 id="name-{e['id']}">{e['name']}</h3><p class="deity-meaning">{e['meaning']}</p></header>
 <figure><img src="{m['path']}" alt="{e['alt']}" width="{m['width']}" height="{m['height']}" loading="lazy" decoding="async"><figcaption><a href="{m['source']}">{m['caption']}</a> {m['author']} · <a href="{m['license_url']}">{m['license']}</a>.</figcaption></figure>
-<div class="deity-copy"><p class="deity-number">{order:02d} / 09</p><h3 id="name-{e['id']}">{e['name']}</h3><p class="deity-meaning">{e['meaning']}</p><p>{e['story']}</p><nav class="deity-links" aria-label="More about {e['name']}">{links}<a href="{e['wikipedia']}">Read on Wikipedia <span aria-hidden="true">↗</span></a></nav></div>
+<div class="deity-copy"><p>{e['story']}</p><nav class="deity-links" aria-label="More about {e['name']}">{links}<a href="{e['wikipedia']}">Read on Wikipedia <span aria-hidden="true">↗</span></a></nav></div>
 </article>''')
     return '<div class="navadurga-cards">' + '\n'.join(cards) + '</div>'

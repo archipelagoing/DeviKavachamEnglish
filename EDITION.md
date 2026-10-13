@@ -56,7 +56,24 @@ The header logo and favicon use `assets/lotus.svg`, a CC0 Pinhead lotus icon tin
 
 ## Reading companions
 
-Read, Contents, and About tabs appear across the site. Contents groups this edition’s 56 verses by theme; each item opens its first verse in the selected reader theme. The selected verse is outlined without scrolling the fitted EPUB page. About explains the protective invocation, its devotional context, and how to read this edition. These editorial explanations remain separate from the preserved hymn.
+Read, Contents, and About tabs appear across the site. Contents groups this edition’s 56 verses by theme. Each row expands in place to show a short explanation; a separate Read link opens its first verse in the selected reader theme. The selected verse is outlined without scrolling the fitted EPUB page. About explains the protective invocation, its devotional context, and how to read this edition. These editorial explanations remain separate from the preserved hymn.
+
+The Navadurga section includes nine locally hosted photographs, short stories,
+Wikipedia links, and exact verse links. All eleven expansions use native HTML
+details/summary controls, so they work without JavaScript. Deity fragment links
+such as `contents.html#shailaputri` open the containing section when JavaScript
+is available. Images load lazily and include source/author/license credits.
+
+Edit the reviewed stories and aliases in `content/navadurga.json`, and thematic
+explanations in `templates/contents.html`, then rebuild. `guide_content.py` uses
+dictionary-based entity linking: it normalizes case and Unicode diacritics,
+matches complete name tokens, and finds the verse numbers in the unchanged TXT.
+It does not invent stories or equate similarly named beings. For example,
+Kūṣmāṇḍā links to verse 3, not the Kuṣmāṇḍas named among spirits in verse 51;
+Kālarātrī links to verses 4 and 34. Stories are reviewed editorial copy based on
+the linked Wikipedia articles, not summaries generated live for each visitor.
+The general themes are explained from the supplied hymn. Story variants are
+identified where relevant, and the hymn itself remains unchanged.
 
 `templates/contents.html` and `templates/about.html` contain the companion content. `build.py` generates their full pages, including the shared navigation. The Read link remembers the previous reader theme and page for the current browser session; guides follow saved Reader View appearance preferences when available. The guides and their links also work without JavaScript.
 
